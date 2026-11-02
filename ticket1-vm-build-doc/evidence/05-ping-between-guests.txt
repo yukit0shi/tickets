@@ -1,1 +1,44 @@
-Linux lab01-ubuntu 6.8.0-31-generic #31-Ubuntu SMP PREEMPT_DYNAMIC x86_64 x86_64 x86_64 GNU/Linux
+From Windows:
+
+Pinging 10.0.2.15 with 32 bytes of data:
+Reply from 10.0.2.15: bytes=32 time=1ms TTL=64
+Reply from 10.0.2.15: bytes=32 time=2ms TTL=64
+Reply from 10.0.2.15: bytes=32 time=1ms TTL=64
+Reply from 10.0.2.15: bytes=32 time=1ms TTL=64
+
+Ping statistics for 10.0.2.15:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 1ms, Maximum = 2ms, Average = 1ms
+
+Pinging 8.8.8.8 with 32 bytes of data:
+Reply from 8.8.8.8: bytes=32 time=84ms TTL=112
+Reply from 8.8.8.8: bytes=32 time=82ms TTL=112
+Reply from 8.8.8.8: bytes=32 time=83ms TTL=112
+Reply from 8.8.8.8: bytes=32 time=84ms TTL=112
+
+Ping statistics for 8.8.8.8:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 82ms, Maximum = 84ms, Average = 83ms
+
+From Ubuntu:
+PING 10.0.2.3 (10.0.2.3) 56(84) bytes of data.
+64 bytes from 10.0.2.3: icmp_seq=1 ttl=128 time=2.40 ms
+64 bytes from 10.0.2.3: icmp_seq=2 ttl=128 time=5.55 ms
+64 bytes from 10.0.2.3: icmp_seq=3 ttl=1.56 ms
+64 bytes from 10.0.2.3: icmp_seq=4 ttl=1.65 ms
+
+--- 10.0.2.3 ping statistics ---
+4 packets transmitted, 4 received, 0% packet loss, time 3017ms
+rtt min/avg/max/mdev = 1.558/2.787/5.548/1.626 ms
+
+PING 1.1.1.1 (1.1.1.1) 56(84) bytes of data.
+64 bytes from 1.1.1.1: icmp_seq=1 ttl=52 time=60.7 ms
+64 bytes from 1.1.1.1: icmp_seq=2 ttl=52 time=73.7 ms
+64 bytes from 1.1.1.1: icmp_seq=3 ttl=52 time=58.8 ms
+64 bytes from 1.1.1.1: icmp_seq=4 ttl=52 time=58.5 ms
+
+--- 1.1.1.1 ping statistics ---
+4 packets transmitted, 4 received, 0% packet loss, time 4104ms
+rtt min/avg/max/mdev = 58.462/62.904/73.651/6.259 ms
