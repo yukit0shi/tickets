@@ -4,7 +4,7 @@ This step-by-step guide will help you build Linux (Ubuntu) and Windows test mach
 
 ## Step 1. Download Prerequisites
 Before starting, download the following free software to your computer:
-1. **Oracle VirtualBox:** Download and install from `virtualbox.org`.
+1. **Oracle VirtualBox:** Download and install from `https://www.virtualbox.org`.
 2. **Ubuntu Server ISO:** Download from `ubuntu.com/download/server`.
 3. **Windows 11 ISO:** Download from `microsoft.com/software-download/windows11`.
 
