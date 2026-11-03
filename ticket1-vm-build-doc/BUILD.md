@@ -1,33 +1,49 @@
 # VM Build Guide for Test Machines
 
-This guide will help you build the required Linux (Ubuntu) and Windows test machines from scratch.
+This step-by-step guide will help you build Linux (Ubuntu) and Windows test machines from scratch.
 
-## Step 1. Creating the Virtual Machine
-Create a new machine in VirtualBox and select the OS version. 
+## Step 1. Download Prerequisites
+Before starting, download the following free software to your computer:
+1. **Oracle VirtualBox:** Download and install from `virtualbox.org`.
+2. **Ubuntu Server ISO:** Download from `ubuntu.com/download/server`.
+3. **Windows 11 ISO:** Download from `microsoft.com/software-download/windows11`.
+
+## Step 2. Creating the Virtual Machines
+Open VirtualBox and click **New** to create the machines.
+
+**For the Linux VM (Ubuntu):**
+* Set Type to **Linux** and Version to **Ubuntu (64-bit)**.
 ![](evidence/01-new-vm-wizard.png)
-**Reasoning:** We select "Linux" and "Ubuntu (64-bit)" because it matches the downloaded ISO image. Building both a Linux and a Windows machine ensures the new developer has a complete cross-platform environment to test their code.
+*Reasoning:* Selecting the correct OS version ensures VirtualBox applies the right hardware defaults.
 
-## Step 2. Disk Allocation
-When setting up the virtual hard disk, ensure the type is set to dynamically allocated.
+**For the Windows VM (Windows 11):**
+* Set Type to **Microsoft Windows** and Version to **Windows 11 (64-bit)**.
+* **CRITICAL:** Under *Settings -> System*, you must enable **EFI** (Motherboard tab) and enable **TPM 2.0** (Security tab).
+*Reasoning:* Windows 11 will refuse to install if TPM 2.0 and Secure Boot (EFI) are not enabled inграмма virtual hardware.
+
+## Step 3. Disk Allocation
+When setting up the virtual hard disks, ensure the type is set to **Dynamically allocated**.
 ![](evidence/02-disk-settings.png)
-**Reasoning:** A dynamically allocated disk only uses space on your physical hard drive as it fills up, rather than reserving the entire 25 GB at once. This prevents the host computer from running out of storage space unnecessarily.
+*Reasoning:* A dynamically allocated disk only takes up space on your physical laptop as it fills up, rather than reserving all 25 GB instantly.
 
-## Step 3. Network Configuration
+## Step 4. Network Configuration
 In the VM settings, under Network Adapter, choose **NAT Network**.
 ![](evidence/03-network-adapter.png)
-**Reasoning:** Why NAT Network and not Bridged? The campus network filters connections by MAC address, which blocks Bridged adapters. NAT Network bypasses this restriction by hiding behind the host's IP, while still allowing both virtual machines to communicate with each other and reach the internet.
+*Reasoning:* The campus Wi-Fi blocks Bridged mode. NAT Network bypasses this block, allowing the VMs to reach the internet and talk to each other safely.
 
-## Step 4. Verifying the Linux Guest
-Start the Linux machine and run `uname -a` to verify the system kernel.
-See evidence: [04-guest-uname.txt](evidence/04-guest-uname.txt)
-**Reasoning:** This step confirms that the operating system is fully installed, booted, and responding to basic system commands without kernel panics.
+## Step 5. Operating System Installation
+1. Click **Start** on each VM.
+2. When prompted, select the Ubuntu or Windows ISO file you downloaded in Step 1.
+3. Follow the on-screen prompts to install the OS. (For Ubuntu, create a default user; for Windows, skip the product key to use the evaluation license).
 
-## Step 5. Verifying Network Connectivity
-Use the `ping` command to test connections from both machines.
-See evidence: [05-ping-between-guests.txt](evidence/05-ping-between-guests.txt)
-**Reasoning:** We must prove that the developer can reach the outside internet to download packages, and that the Windows and Linux machines can talk to each other to test client-server applications.
+## Step 6. Verifying the System
+Once installed, verify the kernel and network connections.
+See evidence: [04-guest-uname.txt](evidence/04-guest-uname.txt) and [05-ping-between-guests.txt](evidence/05-ping-between-guests.txt)
 
-## Step 6. Creating a Safe Restore Point
+## Step 7. Creating a Snapshot (Restore Point)
 Before handing the machine over to the developer, take a clean snapshot.
 ![](evidence/06-snapshot-list.png)
-**Reasoning:** The request asked for a machine where the developer can "try things without breaking anything". A snapshot creates a save state. If the developer completely breaks the system, you can restore it to this clean state in seconds without rebuilding it from scratch.
+
+**How to roll back if the system breaks:**
+If the developer breaks the machine, you do not need to reinstall the OS. Simply turn off the VM, go to the **Snapshots** menu, select `Clean installation`, and click **Restore**.
+*Reasoning:* This fulfills the requirement to let the developer "try things without breaking anything."
