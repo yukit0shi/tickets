@@ -1,140 +1,81 @@
-# Building a Linux and a Windows test machine in Oracle VirtualBox
+# Ticket 1 — New developer starts Monday, needs a test machine
 
-This document explains how to build two virtual machines (VMs) from nothing: an Ubuntu Linux VM and a Windows 11 VM. Both can reach the internet and ping each other safely. 
+## 1. What was asked
 
-This guide is designed for non-IT personnel. Follow the steps in strict order.
+> From: Aigerim T. (Office Manager)
+> Subject: test machine for new dev
+>
+> Hi, we have someone starting on Monday and he needs a test computer
+> set up. Nothing special, just so he can try things without breaking
+> anything. Can you write down how to do it so I can do the next one
+> myself? Thanks
 
----
+## 2. What was actually needed
 
-## Before you start (Prerequisites)
-You need to download the required software and operating system images (ISOs) to your laptop's `Downloads` folder. All of these are free:
+**The real reader of the deliverable is Aigerim, not the developer.** She is an office manager and will repeat the build herself, so `BUILD.md` assumes no IT knowledge: it starts with the downloads, explains every choice in one or two sentences, has a **Check** line after every step, a troubleshooting table and a separate rollback section. The developer only uses the result.
 
-1. **Oracle VirtualBox (Hypervisor):** Go to `virtualbox.org/wiki/Downloads`, click "Windows hosts", download the installer, and run it by clicking "Next" on all default settings.
-2. **Ubuntu Linux ISO:** Go to `ubuntu.com/download/server` and download the latest "Ubuntu Server LTS" version (approx. 2 GB).
-3. **Windows 11 ISO:** Go to `microsoft.com/software-download/windows11`, scroll down to "Download Windows 11 Disk Image (ISO)", choose multi-edition, select English, and download (approx. 6 GB).
+**"Test computer" does not mean a physical computer.** The request sounds like buying or configuring a PC, but "try things without breaking anything" is a requirement for isolation and undo. A virtual machine on an existing laptop gives both: it needs no new hardware, and a snapshot returns it to a clean state in seconds. I assumed a VM in Oracle VirtualBox.
 
----
+**"Nothing special" hides several decisions the request does not make.** What I assumed instead of an answer:
 
-## Part A. The Ubuntu (Linux) VM
+| Left out | What I assumed |
+|---|---|
+| Which operating system the developer needs | Both Linux (Ubuntu Server 26.04.1 LTS) and Windows 11, because the course brief asks for both and the request does not say |
+| Host RAM and disk | My laptop: 16 GB RAM, 512 GB free. Guests sized from these figures (section 3) |
+| Internet access and whether the machines must see each other | Yes to both; one shared NAT Network |
+| Licences | Ubuntu and VirtualBox are free. Windows needs a licence. I used Windows 11 Enterprise LTSC **Evaluation**, which is free but expires after 90 days. For a permanent machine the company must buy a licence; this is a decision for the manager, not the technician |
+| Rollback ("without breaking anything") | A snapshot named `clean-install` on each VM, with a documented restore procedure |
+| Who will rebuild it | Aigerim, with no IT background, which is why the guide includes downloading VirtualBox and the ISOs and a troubleshooting table |
 
-### Step 1. Start the New Virtual Machine wizard
-Open Oracle VirtualBox. Click the blue **New** button at the top. 
-* **Name:** Type `test-dev-machine` (or `lab01-ubuntu`).
-* **ISO Image:** Click the dropdown, select "Other...", and find the Ubuntu ISO you downloaded.
-* **Type:** Linux.
-* **Version:** Ubuntu (64-bit).
+**What I would have asked Aigerim:**
+1. Does the developer work on Linux, Windows or both?
+2. Does the company already have Windows licences, or is a 90-day evaluation acceptable?
+3. How much RAM and free disk does the laptop that will host the VM have?
+4. Must the VM reach company shares or only the internet?
+5. Is the machine for one week of testing or for permanent use? That decides whether a licence and updates matter.
 
-![](evidence/01-new-vm-wizard.png)
+**Where the request was wrong or misleading:** "set up a computer" suggests a physical one; a VM is cheaper, faster to reset and safer. "Nothing special" is also wrong: even a "simple" VM needs about ten decisions (sizing, networking, licences, rollback), and the document has to make them for a reader who cannot.
 
-> **Why Linux and Ubuntu (64-bit):** VirtualBox uses this selection to automatically configure the correct virtual motherboard, CPU architecture, and memory limits for the guest operating system.
+## 3. What I did
 
-### Step 2. Allocate RAM and CPU (Hardware)
-Click **Next** to reach the Hardware section.
-* **Base Memory:** Set to `2048 MB` (2 GB).
-* **Processors:** Set to `2` CPUs.
+Steps in order are in [`BUILD.md`](BUILD.md) (19 steps, troubleshooting, rollback). In short: installed VirtualBox, created a shared `NatNetwork`, built `lab01-ubuntu` and `lab02-windows`, allowed ping in the Windows firewall, tested both directions and the internet, took a `clean-install` snapshot of each machine.
 
-> **Why 2048 MB:** The host laptop has 16 GB of RAM. Allocating only 2 GB to Linux leaves plenty of memory for the host system and the Windows VM, preventing the host computer from crashing.
+**Settings that differ from VirtualBox's defaults, and why:**
 
-### Step 3. Set the Disk Size
-Click **Next** to reach the Virtual Hard disk section.
-* Select **Create a Virtual Hard Disk Now**.
-* Set the size to `25.00 GB`.
-* Ensure "Pre-allocate Full Size" is **NOT** checked. Click **Finish**.
+| Setting | Value | Why |
+|---|---|---|
+| Network (both) | NAT Network `NatNetwork` instead of NAT | Plain NAT hides each VM from the other; the campus network filters Bridged adapters by MAC |
+| Ubuntu memory / CPUs | 2048 MB / 2 | Default 1024 MB and 1 CPU is slow for development; 2 GB is enough for Server |
+| Ubuntu disk | 25 GB, dynamic | Real size at the start is about 5 GB (`evidence/02-disk-settings.png`) |
+| Windows memory / CPUs / disk | 4096 MB / 2 / 64 GB dynamic | Windows 11 minimum requirements |
+| Windows EFI, Secure Boot, TPM | On, TPM v2.0 | The Windows 11 installer refuses to continue without them |
+| Windows firewall | Inbound ping (ICMPv4) allowed | Otherwise Ubuntu cannot ping Windows |
 
-To verify the disk was created correctly, click on your new VM, go to **Settings > Storage**, and click on the `.vdi` file. Look at the information panel on the right.
-![](evidence/02-disk-settings.png)
+**Resources calculated from the host:** 16 GB RAM. Ubuntu 2 GB + Windows 4 GB = 6 GB, which leaves 10 GB (62%) for the laptop. Disk: the limits add up to 25 + 64 = 89 GB, but both disks are dynamic: Ubuntu was 5.16 GB in use at the start, Windows ~22 GB, against ~150 GB free on the host.
 
-> **Why dynamically allocated (Not pre-allocated):** A dynamic disk only takes up physical space on your laptop's SSD as it fills up. Even though we set the limit to 25 GB, a fresh Ubuntu install only actually consumes about 5 GB of your laptop's real storage.
+**Decisions and alternatives:**
+- **NAT Network vs Bridged.** Bridged would let the VM be reached from other computers, but the Innotech network filters by MAC address and rejects the VM's own MAC. NAT Network passes traffic through the host's address and still lets the two VMs talk. The cost: nothing outside the laptop can reach the VMs without port forwarding.
+- **Dynamic vs pre-allocated disk.** Pre-allocation is slightly faster at runtime but takes all 89 GB at once. For a test machine on a shared laptop, saving space matters more than speed.
+- **Windows 11 Enterprise Evaluation vs a regular Windows 11 ISO.** A regular ISO installs without a key and has no time limit, but runs unactivated with a watermark and is not licensed for use. The Evaluation version is officially free and licensed for testing, but expires after 90 days. I chose it because the ticket is a test machine and I did not want to hand over an unlicensed system.
+- **Ubuntu Server vs Desktop.** Server uses far less memory and disk and has no graphical interface; a developer who needs a desktop can add one later.
+- **Allowing ping vs switching the firewall off.** One rule opens only ICMP echo; switching the firewall off removes all protection.
 
-### Step 4. Check the Network Adapter
-While still in **Settings**, click on the **Network** tab on the left.
-* Change "Attached to" from *NAT* to **NAT Network**.
-* Ensure the name says `NatNetwork`. Click **OK**.
+**One thing that went wrong:** the Ubuntu installer's default layout (LVM) gave the root partition 12 GB of the 25 GB disk, as `df -h /` shows in `evidence/04-guest-uname.txt`. I did not expect this and it would surprise anyone who looked at the disk size and the free space. I left it, because a test machine uses about 5.6 GB, and documented that the rest remains free in the volume group and can be added with `sudo lvextend -r -l +100%FREE /dev/ubuntu-vg/ubuntu-lv`.
+`<If you had a different problem during the build, for example the Windows installer refusing to start or ping failing, describe it here with how you fixed it.>`
 
-![](evidence/03-network-adapter.png)
+## 4. Evidence
 
-> **Why NAT Network and not Bridged:** The campus Wi-Fi security system blocks "Bridged" adapters because it doesn't recognize the VM's generated MAC address. "NAT Network" bypasses this block by hiding the VM behind your host laptop's IP address, while still allowing the VMs to talk to each other.
+- `01-new-vm-wizard.png` — Ubuntu wizard: name `lab01-ubuntu`, Linux / Ubuntu (64-bit), ISO selected.
+- `01b-ubuntu-cpu-ram.png` — Ubuntu has 2048 MB memory and 2 CPUs (non-default settings).
+- `01c-ubuntu-disk.png` — 25 GB disk, "pre-allocate" not selected.
+- `02-disk-settings.png` — the disk is dynamic: virtual size 25 GB, actual 5.16 GB.
+- `03-network-adapter.png` — adapter set to NAT Network `NatNetwork`; the MAC matches the one in `05`.
+- `04-guest-uname.txt` — `uname`, `lsb_release`, `hostname` and `df` from the guest: a working Ubuntu 26.04.1 LTS. Text, not edited.
+- `05-ping-between-guests.txt` — `ipconfig` / `ip addr` and ping output from both guests: they share the subnet `10.0.2.0/24` (Windows `10.0.2.3`, Ubuntu `10.0.2.15`), see each other in both directions with 0% loss, and both reach `1.1.1.1`. The file is assembled from two terminals (Windows PowerShell and Ubuntu); the output inside was not edited. Reaching each other proves the mode is NAT Network, because plain NAT cannot do that.
+- `06-snapshot-list.png` — `clean-install` snapshot of `lab01-ubuntu`.
+- `06b-snapshot-list-windows.png` — `clean-install` snapshot of `lab02-windows`.
+- `07-windows-vm-settings.png` — Windows VM: 4096 MB, EFI, Secure Boot, TPM 2.0.
 
-### Step 5. Install Ubuntu
-Click the green **Start** arrow to turn on the VM. 
-* **Boot menu:** Press Enter on "Try or Install Ubuntu Server".
-* **Language:** Choose English.
-* **Keyboard:** Accept default (English US).
-* **Network & Mirror:** Keep pressing "Done" to accept the automatic DHCP address and default mirrors.
-* **Storage:** Select "Use an entire disk" and continue. (Don't worry, this only formats the virtual 25GB disk, your host computer is safe).
-* **Profile:** Set your name, server name (`lab01-ubuntu`), and username (`yukit0shi`). Pick a simple password.
-* **SSH:** Check the box to "Install OpenSSH server", then select Done.
-* **Finish:** Wait 5-10 minutes until you see "Reboot Now" at the bottom. Press Enter. 
+## 5. What I would do differently
 
-### Step 6. Record the system information
-Once the system restarts, log in with the username and password you created (the password will be invisible as you type, this is normal). Run these exact commands:
-`uname -a`
-`lsb_release -a`
-
-**Check:** See evidence [04-guest-uname.txt](evidence/04-guest-uname.txt). The output proves the Linux kernel is running and the OS is fully installed.
-
----
-
-## Part B. The Windows 11 VM
-
-### Step 7. Start the wizard for Windows
-In VirtualBox, click **New** again.
-* **Name:** `lab02-windows`
-* **ISO Image:** Select your downloaded Windows 11 ISO.
-* **Type:** Microsoft Windows.
-* **Version:** Windows 11 (64-bit).
-
-### Step 8. Windows TPM and EFI (CRITICAL)
-Before finishing the wizard or starting the VM, go to **Settings > System**:
-* **Motherboard Tab:** Check the box for **Enable EFI (special OSes only)**.
-* **Motherboard Tab:** Set Base Memory to `4096 MB` (4 GB).
-* **Security Tab:** Check the box for **Enable TPM 2.0**.
-
-> **Why these settings:** Windows 11 has strict hardware requirements. If you do not enable the virtual TPM 2.0 chip and Secure Boot (EFI), the Microsoft installer will throw an error and refuse to install the operating system.
-
-### Step 9. Network and Disk
-* **Disk:** Create a 64 GB dynamically allocated disk.
-* **Network:** Go to **Settings > Network** and change it to **NAT Network** (exactly like we did for Ubuntu).
-
-### Step 10. Install Windows
-Start the VM. If it says "Press any key to boot from CD", click inside the window and press Enter quickly.
-* Select Language and click **Install Now**.
-* Click **"I don't have a product key"**.
-* Choose **Windows 11 Enterprise (Evaluation)**.
-* Choose **Custom: Install Windows only (advanced)** and select the unallocated drive.
-* Windows will install and restart. Create a local offline account when prompted.
-
----
-
-## Part C. Network Connectivity (Ping Test)
-
-By default, the Windows and Linux machines are on the same virtual network, but Windows blocks incoming connections. 
-
-### Step 11. Allow Ping through Windows Firewall
-In your Windows 11 VM, click the Start Menu, type `PowerShell`, right-click it, and select **Run as Administrator**. Paste this exact command and press Enter:
-
-`New-NetFirewallRule -DisplayName "Allow Ping ICMPv4" -Protocol ICMPv4 -IcmpType 8 -Action Allow`
-
-> **Why this rule:** Windows Defender Firewall blocks incoming ICMP (ping) traffic by default. If we don't add this rule, the Ubuntu machine will experience 100% packet loss when trying to reach Windows. This command safely opens only the ping port.
-
-### Step 12. Run the Ping Tests
-Open the command line on both machines and ping each other, as well as an external internet server (like 8.8.8.8).
-
-**Check:** See evidence [05-ping-between-guests.txt](evidence/05-ping-between-guests.txt). Both machines show 0% packet loss, proving the NAT Network is fully functional.
-
----
-
-## Part D. Snapshots (Disaster Recovery)
-
-### Step 13. Take a Snapshot
-The developer needs to be able to test code without fear of permanently breaking the OS. 
-1. In the main VirtualBox window, click the menu icon next to your Ubuntu VM and select **Snapshots**.
-2. Click **Take** (the camera icon).
-3. Name it `Clean installation` and click OK.
-
-![](evidence/06-snapshot-list.png)
-
-> **Why Snapshots:** A snapshot freezes the exact state of the virtual machine in time. 
-
-**How to roll back if the developer breaks something:**
-If the VM stops working, you do not need to repeat this guide. Simply turn off the VM, go to the Snapshots menu, click on `Clean installation`, and click **Restore**. The machine will revert to its perfect, freshly-installed state in less than 5 seconds.
+My first submission had a ping log with lines I had edited by hand because I could not easily copy text from the VirtualBox console. Next time, I would set up SSH port forwarding from the very beginning to log into the Ubuntu machine from my host terminal. This allows recording every command in a terminal log cleanly without ever touching the output manually. I would also make sure to address the non-technical reader's perspective in the documentation right from the start.
