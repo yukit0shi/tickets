@@ -21,7 +21,7 @@
 | Left out | What I assumed |
 |---|---|
 | Which operating system the developer needs | Both Linux (Ubuntu Server 26.04.1 LTS) and Windows 11, because the course brief asks for both and the request does not say |
-| Host RAM and disk | My laptop: 16 GB RAM, 512 GB free. Guests sized from these figures (section 3) |
+| Host RAM and disk | My laptop: 16 GB RAM, 240 GB free. Guests sized from these figures (section 3) |
 | Internet access and whether the machines must see each other | Yes to both; one shared NAT Network |
 | Licences | Ubuntu and VirtualBox are free. Windows needs a licence. I used Windows 11 Enterprise LTSC **Evaluation**, which is free but expires after 90 days. For a permanent machine the company must buy a licence; this is a decision for the manager, not the technician |
 | Rollback ("without breaking anything") | A snapshot named `clean-install` on each VM, with a documented restore procedure |
@@ -51,7 +51,7 @@ Steps in order are in [`BUILD.md`](BUILD.md) (19 steps, troubleshooting, rollbac
 | Windows EFI, Secure Boot, TPM | On, TPM v2.0 | The Windows 11 installer refuses to continue without them |
 | Windows firewall | Inbound ping (ICMPv4) allowed | Otherwise Ubuntu cannot ping Windows |
 
-**Resources calculated from the host:** 16 GB RAM. Ubuntu 2 GB + Windows 4 GB = 6 GB, which leaves 10 GB (62%) for the laptop. Disk: the limits add up to 25 + 64 = 89 GB, but both disks are dynamic: Ubuntu was 5.16 GB in use at the start, Windows ~22 GB, against ~150 GB free on the host.
+**Resources calculated from the host:** 16 GB RAM. Ubuntu 2 GB + Windows 4 GB = 6 GB, which leaves 10 GB (62%) for the laptop. Disk: the limits add up to 25 + 64 = 89 GB, but both disks are dynamic: Ubuntu was 5.16 GB in use at the start, Windows ~22 GB, against 240 GB free on the host.
 
 **Decisions and alternatives:**
 - **NAT Network vs Bridged.** Bridged would let the VM be reached from other computers, but the Innotech network filters by MAC address and rejects the VM's own MAC. NAT Network passes traffic through the host's address and still lets the two VMs talk. The cost: nothing outside the laptop can reach the VMs without port forwarding.
@@ -60,8 +60,7 @@ Steps in order are in [`BUILD.md`](BUILD.md) (19 steps, troubleshooting, rollbac
 - **Ubuntu Server vs Desktop.** Server uses far less memory and disk and has no graphical interface; a developer who needs a desktop can add one later.
 - **Allowing ping vs switching the firewall off.** One rule opens only ICMP echo; switching the firewall off removes all protection.
 
-**One thing that went wrong:** the Ubuntu installer's default layout (LVM) gave the root partition 12 GB of the 25 GB disk, as `df -h /` shows in `evidence/04-guest-uname.txt`. I did not expect this and it would surprise anyone who looked at the disk size and the free space. I left it, because a test machine uses about 5.6 GB, and documented that the rest remains free in the volume group and can be added with `sudo lvextend -r -l +100%FREE /dev/ubuntu-vg/ubuntu-lv`.
-`<If you had a different problem during the build, for example the Windows installer refusing to start or ping failing, describe it here with how you fixed it.>`
+**One thing that went wrong:** the Ubuntu installer's default layout (LVM) gave the root partition 12 GB of the 25 GB disk, as `df -h /` shows in `evidence/04-guest-uname.txt`. I did not expect this and it would surprise anyone who looked at the disk size and the free space. I left it, because a test machine uses about 5.6 GB, and noted here that the rest remains free in the volume group and can be added with `sudo lvextend -r -l +100%FREE /dev/ubuntu-vg/ubuntu-lv`.
 
 ## 4. Evidence
 
