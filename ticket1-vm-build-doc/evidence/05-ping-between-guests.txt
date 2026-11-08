@@ -1,4 +1,5 @@
 # Proves: network connectivity between Ubuntu and Windows VMs on NatNetwork, and internet access via 1.1.1.1.
+# Source: command output copied from the terminal, not edited.
 
 ## Windows guest
 PS C:\Users\Aisulu> ipconfig
