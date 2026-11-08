@@ -147,8 +147,6 @@ Click **Запустить** (Start). A window opens. Click inside it, then use 
 13. Wait 5–10 minutes. When **Reboot Now** appears at the bottom, press Enter.
 14. If the screen says "Please remove the installation medium, then press ENTER", press Enter. If the installer menu comes back instead, switch the VM off, open **Настроить** → **Носители** (Storage), remove the ISO from the optical drive and start again.
 
-![](evidence/05a-ubuntu-installer-storage.png)
-![](evidence/05b-ubuntu-installer-profile.png)
 
 Why these answers: they are the installer's defaults except for the name, the SSH server and the disk choice. Defaults are used on purpose so the next person does not have to decide anything.
 
@@ -167,7 +165,6 @@ ip addr
 * `lsb_release -a` must say `Ubuntu 26.04.1 LTS`.
 * `ip addr`: under `enp0s3` find a line `inet 10.0.2.x/24`. **Write that number down**, you need it in Step 18.
 
-![](evidence/05c-ubuntu-first-login.png)
 
 > **Check:** all three commands print what is described above. The same output is saved in `evidence/04-guest-uname.txt`.
 
