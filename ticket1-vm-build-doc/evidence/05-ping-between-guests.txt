@@ -1,8 +1,22 @@
-From Windows:
+# Proves: network connectivity between Ubuntu and Windows VMs on NatNetwork, and internet access via 1.1.1.1.
+
+## Windows guest
+PS C:\Users\Aisulu> ipconfig
+
+Windows IP Configuration
+
+Ethernet adapter Ethernet:
+   Connection-specific DNS Suffix  . : 
+   Link-local IPv6 Address . . . . . : fe80::ea7b:7a32:8e2:44ab%4
+   IPv4 Address. . . . . . . . . . . : 10.0.2.3
+   Subnet Mask . . . . . . . . . . . : 255.255.255.0
+   Default Gateway . . . . . . . . . : 10.0.2.1
+
+PS C:\Users\Aisulu> ping 10.0.2.15
 
 Pinging 10.0.2.15 with 32 bytes of data:
-Reply from 10.0.2.15: bytes=32 time=1ms TTL=64
 Reply from 10.0.2.15: bytes=32 time=2ms TTL=64
+Reply from 10.0.2.15: bytes=32 time=1ms TTL=64
 Reply from 10.0.2.15: bytes=32 time=1ms TTL=64
 Reply from 10.0.2.15: bytes=32 time=1ms TTL=64
 
@@ -11,34 +25,48 @@ Ping statistics for 10.0.2.15:
 Approximate round trip times in milli-seconds:
     Minimum = 1ms, Maximum = 2ms, Average = 1ms
 
-Pinging 8.8.8.8 with 32 bytes of data:
-Reply from 8.8.8.8: bytes=32 time=84ms TTL=112
-Reply from 8.8.8.8: bytes=32 time=82ms TTL=112
-Reply from 8.8.8.8: bytes=32 time=83ms TTL=112
-Reply from 8.8.8.8: bytes=32 time=84ms TTL=112
+PS C:\Users\Aisulu> ping 1.1.1.1
 
-Ping statistics for 8.8.8.8:
+Pinging 1.1.1.1 with 32 bytes of data:
+Reply from 1.1.1.1: bytes=32 time=66ms TTL=52
+Reply from 1.1.1.1: bytes=32 time=56ms TTL=52
+Reply from 1.1.1.1: bytes=32 time=56ms TTL=52
+Reply from 1.1.1.1: bytes=32 time=56ms TTL=52
+
+Ping statistics for 1.1.1.1:
     Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
 Approximate round trip times in milli-seconds:
-    Minimum = 82ms, Maximum = 84ms, Average = 83ms
+    Minimum = 56ms, Maximum = 66ms, Average = 58ms
 
-From Ubuntu:
+## Linux guest
+$ ip addr
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+    inet6 ::1/128 scope host noprefixroute 
+2: enp0s3: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state UP group default qlen 1000
+    link/ether 08:00:27:1e:d7:27 brd ff:ff:ff:ff:ff:ff
+    altname enx0800271ed727
+    inet 10.0.2.15/24 metric 100 brd 10.0.2.255 scope global dynamic enp0s3
+
+$ ping -c 4 10.0.2.3
 PING 10.0.2.3 (10.0.2.3) 56(84) bytes of data.
-64 bytes from 10.0.2.3: icmp_seq=1 ttl=128 time=2.40 ms
-64 bytes from 10.0.2.3: icmp_seq=2 ttl=128 time=5.55 ms
-64 bytes from 10.0.2.3: icmp_seq=3 ttl=1.56 ms
-64 bytes from 10.0.2.3: icmp_seq=4 ttl=1.65 ms
+64 bytes from 10.0.2.3: icmp_seq=1 ttl=128 time=4.39 ms
+64 bytes from 10.0.2.3: icmp_seq=2 ttl=128 time=1.44 ms
+64 bytes from 10.0.2.3: icmp_seq=3 ttl=128 time=1.00 ms
+64 bytes from 10.0.2.3: icmp_seq=4 ttl=128 time=1.41 ms
 
 --- 10.0.2.3 ping statistics ---
-4 packets transmitted, 4 received, 0% packet loss, time 3017ms
-rtt min/avg/max/mdev = 1.558/2.787/5.548/1.626 ms
+4 packets transmitted, 4 received, 0% packet loss, time 3003ms
+rtt min/avg/max/mdev = 1.001/2.059/4.388/1.355 ms
 
+$ ping -c 4 1.1.1.1
 PING 1.1.1.1 (1.1.1.1) 56(84) bytes of data.
-64 bytes from 1.1.1.1: icmp_seq=1 ttl=52 time=60.7 ms
-64 bytes from 1.1.1.1: icmp_seq=2 ttl=52 time=73.7 ms
-64 bytes from 1.1.1.1: icmp_seq=3 ttl=52 time=58.8 ms
-64 bytes from 1.1.1.1: icmp_seq=4 ttl=52 time=58.5 ms
+64 bytes from 1.1.1.1: icmp_seq=1 ttl=52 time=57.0 ms
+64 bytes from 1.1.1.1: icmp_seq=2 ttl=52 time=56.3 ms
+64 bytes from 1.1.1.1: icmp_seq=3 ttl=52 time=56.8 ms
+64 bytes from 1.1.1.1: icmp_seq=4 ttl=52 time=57.0 ms
 
 --- 1.1.1.1 ping statistics ---
-4 packets transmitted, 4 received, 0% packet loss, time 4104ms
-rtt min/avg/max/mdev = 58.462/62.904/73.651/6.259 ms
+4 packets transmitted, 4 received, 0% packet loss, time 3010ms
+rtt min/avg/max/mdev = 56.294/56.774/57.009/0.290 ms
