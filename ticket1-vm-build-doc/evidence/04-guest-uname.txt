@@ -1,1 +1,19 @@
-Linux lab01-ubuntu 6.8.0-31-generic #31-Ubuntu SMP PREEMPT_DYNAMIC x86_64 x86_64 x86_64 GNU/Linux
+# Proves: the guest is a working Ubuntu Server (release and kernel below), hostname lab01-ubuntu, root volume size below.
+# Source: command output copied from the terminal, not edited.
+
+$ uname -a
+Linux lab01-ubuntu 7.0.0-38-generic #38-Ubuntu SMP PREEMPT_DYNAMIC Fri Sep 4 09:10:14 UTC 2026 x86_64 GNU/Linux
+
+$ lsb_release -a
+No LSB modules are available.
+Distributor ID: Ubuntu
+Description:    Ubuntu 26.04.1 LTS
+Release:        26.04
+Codename:       resolute
+
+$ hostname
+lab01-ubuntu
+
+$ df -h /
+Filesystem                         Size  Used Avail Use% Mounted on
+/dev/mapper/ubuntu--vg-ubuntu--lv   12G  5.6G  5.2G  52% /
