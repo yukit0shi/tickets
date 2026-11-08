@@ -3,7 +3,7 @@
 This guide builds two virtual machines (VMs) on one laptop, starting from nothing:
 
 * `lab01-ubuntu` — Ubuntu Server 26.04.1 LTS (Linux)
-* `lab02-windows` — Windows 11
+* `lab02-windows` — Windows 11 Enterprise LTSC Evaluation
 
 Both VMs can reach the internet and see each other, and each has a saved "clean" state you can return to in a few seconds if something breaks. You do not need any IT knowledge. Do the steps in order and do not skip the **Check** lines: they tell you whether to continue or stop.
 
@@ -47,15 +47,13 @@ Why Server and not Desktop: Server has no graphical interface, so it needs far l
 
 > **Check:** the file is in `Downloads` and is about 2 GB.
 
-
 ### Step 3. Download the Windows 11 ISO
 1. Open the Microsoft Evaluation Center (`https://www.microsoft.com/evalcenter`) and find **Windows 11 Enterprise**.
-2. Choose the **ISO** download, language **English (United States)**, and download it (about 5–6 GB). The file name looks like `26100....CLIENT_LTSC_EVAL_x64FRE_en-us.iso`.
+2. Choose the **ISO** download, language **English (United States)**, and download it (about 5–6 GB). The file name is `26100.1742.240906-0331.ge_release_svc_refresh_CLIENT_LTSC_EVAL_x64FRE_en-us.iso`.
 
 Why this one: it is Microsoft's own free evaluation version, so it needs no product key. The limit is time: it works for 90 days, then it must be replaced or licensed.
 
 > **Check:** the file is in `Downloads` and is about 5–6 GB.
-
 
 ---
 
@@ -82,17 +80,17 @@ Why NAT Network and not Bridged: the Innotech teaching network filters by MAC ad
 1. Click **Создать** (New) in the toolbar.
 2. **Имя ВМ** (Name): `lab01-ubuntu`.
 3. **Образ ISO** (ISO Image): open the list, choose **Другой…** (Other…) and select the Ubuntu ISO.
-4. Make sure **ОС** (Type) = `Linux`, **Дистрибутив** (Subtype) = `Ubuntu`, **Версия** (Version) = `Ubuntu (64-bit)`. VirtualBox fills these in itself.
-5. Tick **Пропустить автоматическую установку** (Skip Unattended Installation).
+4. Make sure **ОС** (Type) = `Linux`, **Дистрибутив ОС** (Subtype) = `Ubuntu`, **Версия ОС** (Version) = `Ubuntu (64-bit)`. VirtualBox fills these in itself.
+5. Leave **Осуществить установку автоматически** (Proceed with Unattended Installation) **unticked**.
 
 ![](evidence/01-new-vm-wizard.png)
 
-Why skip unattended installation: otherwise VirtualBox installs Ubuntu with its own username and settings, and this guide would no longer match what you see.
+Why unticked: otherwise VirtualBox installs Ubuntu by itself with its own username and settings, and this guide would no longer match what you see.
 
-> **Check:** the name is exactly `lab01-ubuntu` and the version says Ubuntu (64-bit). Do not click **Готово** (Finish) yet.
+> **Check:** the name is exactly `lab01-ubuntu`, the version says Ubuntu (64-bit) and the unattended box is empty. Do not click **Готово** (Finish) yet.
 
 ### Step 6. Memory and processors
-Click **Настроить аппаратное обеспечение** (Specify virtual hardware).
+Click **Укажите виртуальное оборудование** (Specify virtual hardware).
 * **Основная память** (Base Memory): `2048 MB`.
 * **Процессоры** (Processors): `2`.
 * Leave **Включить EFI** (Enable EFI) **unticked** for Linux.
@@ -104,7 +102,7 @@ Why 2048 MB and 2 CPUs: the default (1024 MB, 1 CPU) is slow for a developer. Ub
 > **Check:** Memory shows 2048 MB and Processors shows 2.
 
 ### Step 7. Virtual disk
-Click **Создать виртуальный жёсткий диск** (Specify virtual hard disk).
+Click **Укажите виртуальный жёсткий диск** (Specify virtual hard disk).
 * Choose **Создать виртуальный жёсткий диск сейчас** (Create a Virtual Hard Disk Now) and set the size to `25 GB`.
 * Leave **Выделить место в полном размере** (Pre-allocate Full Size) **unticked**.
 * Click **Готово** (Finish).
@@ -148,7 +146,6 @@ Click **Запустить** (Start). A window opens. Click inside it, then use 
 13. Wait 5–10 minutes. When **Reboot Now** appears at the bottom, press Enter.
 14. If the screen says "Please remove the installation medium, then press ENTER", press Enter. If the installer menu comes back instead, switch the VM off, open **Настроить** → **Носители** (Storage), remove the ISO from the optical drive and start again.
 
-
 Why these answers: they are the installer's defaults except for the name, the SSH server and the disk choice. Defaults are used on purpose so the next person does not have to decide anything.
 
 > **Check:** after the reboot you see `lab01-ubuntu login:`.
@@ -166,7 +163,6 @@ ip addr
 * `lsb_release -a` must say `Ubuntu 26.04.1 LTS`.
 * `ip addr`: under `enp0s3` find a line `inet 10.0.2.x/24`. **Write that number down**, you need it in Step 18.
 
-
 > **Check:** all three commands print what is described above. The same output is saved in `evidence/04-guest-uname.txt`.
 
 ---
@@ -183,15 +179,18 @@ ip addr
 
 ![](evidence/07a-windows-wizard.png)
 
-Why Pro: it is the normal business edition, and it installs without a product key.
+Why this edition: the Evaluation ISO contains only this one edition, so VirtualBox picks it itself and there is nothing to choose. It is free and needs no key, but works for 90 days.
 
-> **Check:** name `lab02-windows`, version Windows 11 (64-bit). Do not click Finish yet.
+> **Check:** name `lab02-windows`, version Windows 11 (64-bit), unattended box empty. Do not click Finish yet.
 
 ### Step 12. Memory, processors, disk
+Click **Укажите виртуальное оборудование** (Specify virtual hardware) and set:
 * **Основная память** (Base Memory): `4096 MB`.
 * **Процессоры** (Processors): `2`.
 * **Включить EFI** (Enable EFI): **ticked**.
-* **Диск** (Disk): `64 GB`, dynamically allocated (Pre-allocate **unticked**).
+
+Then click **Укажите виртуальный жёсткий диск** (Specify virtual hard disk):
+* Size `64 GB`, **Выделить место в полном размере** (Pre-allocate Full Size) **unticked**.
 * Click **Готово** (Finish).
 
 Why: 4 GB RAM, 2 CPUs and 64 GB disk are Microsoft's official minimum for Windows 11; the installer refuses to continue below them. Dynamic allocation again means the laptop gives up only the space Windows actually uses (about 20–25 GB at first).
@@ -210,7 +209,7 @@ Windows 11 refuses to install without a TPM 2.0 chip and UEFI. A VM has no real 
 
 Why: skipping this is the most common reason the Windows installer stops with "This PC can't run Windows 11".
 
-> **Check:** the three settings above are visible exactly as in the screenshot. If the TPM list is missing, your VirtualBox is older than 7.0: update it (Step 1).
+> **Check:** the settings above are visible exactly as in the screenshot. If the TPM list is missing, your VirtualBox is older than 7.0: update it (Step 1).
 
 ### Step 14. Attach Windows to the NatNetwork
 **Настроить** → **Сеть** → **Адаптер 1**: **Тип подключения** = `Сеть NAT`, **Имя** = `NatNetwork`. Click **OK**.
@@ -224,12 +223,12 @@ Why: the same network as Ubuntu is what lets the two machines talk. See Step 4.
 ### Step 15. Install Windows
 1. Click **Запустить** (Start). If you see **Press any key to boot from CD or DVD**, click inside the window and press any key **immediately** (the prompt disappears after a few seconds; if you miss it, use **Машина** → **Перезагрузить** and try again).
 2. Language, time and keyboard: leave as is → **Next** → **Install now**.
-3. **Product key:** click **I don't have a product key**.
-4. **Operating system:** choose **Windows 11 Pro** → Next → accept the licence → Next.
+3. If a **product key** screen appears, click **I don't have a product key**. The Evaluation version does not need one, and it may skip this screen.
+4. If you are asked to choose an operating system, choose the only one offered (Windows 11 Enterprise Evaluation). Accept the licence → Next.
 5. **Installation type:** **Custom: Install Windows only (advanced)**.
-6. Select the single drive (Drive 0, 64 GB, unallocated) → Next. The VM restarts several times by itself; this takes 10–20 minutes. Do not press keys when "Press any key…" appears again, so that it boots from the new disk.
-7. **First-run setup:** choose your region and keyboard; give the computer a name (`lab02-windows`).
-8. **Sign-in:** the installer wants a Microsoft account. To make a local account instead, press **Shift+F10**, type `start ms-cxh:localonly` and press Enter, then enter a user name and password. (If that does not work, use the "Sign-in options" link or sign in with a Microsoft account.)
+6. Select the single drive (Drive 0, 64 GB, unallocated) → Next. The VM restarts several times by itself; this takes 10–20 minutes. When "Press any key…" appears again, do **not** press anything, so that it boots from the new disk.
+7. **First-run setup:** choose your region and keyboard; give the computer the name `lab02-windows` if asked.
+8. **Sign-in:** if the installer insists on a Microsoft account, press **Shift+F10**, type `start ms-cxh:localonly` and press Enter, then enter a user name and password. (If that does not work, use the "Sign-in options" link or sign in with a Microsoft account.)
 9. Answer the privacy questions with **Decline/No** and **Accept**.
 
 ![](evidence/07c-windows-installer.png)
@@ -330,16 +329,19 @@ This normally takes a few seconds, not a rebuild. **Warning:** everything done s
 
 ---
 
-## Summary of settings that differ from VirtualBox's defaults
+## Summary of the settings this guide sets
 
-| Setting | Default | This guide | Why |
-|---|---|---|---|
-| Network (both VMs) | NAT | NAT Network `NatNetwork` | VMs must see each other; the campus network filters Bridged adapters (Step 4) |
-| Ubuntu memory | 1024 MB | 2048 MB | Smooth for a developer; leaves 10 GB for the laptop (Step 6) |
-| Ubuntu CPUs | 1 | 2 | Responsive builds and package installs |
-| Ubuntu disk | 25 GB dynamic (default 25 GB in new wizard) | 25 GB dynamic | Uses about 5 GB at first (Step 7) |
-| Unattended installation | On | Skipped | So that the guide matches what is on screen (Steps 5, 11) |
-| Windows memory | 2048 MB | 4096 MB | Windows 11 minimum |
-| Windows disk | 80 GB | 64 GB dynamic | Windows 11 minimum is 64 GB; no need for more on a test machine |
-| Windows EFI, Secure Boot, TPM | Off | On, v2.0 | Windows 11 will not install without them (Step 13) |
-| Firewall | Ping blocked | Ping allowed in | So Ubuntu can reach Windows (Step 17) |
+Where VirtualBox already proposes the same value, it is still listed, so that the build is the same every time.
+
+| Setting | Value in this guide | Why |
+|---|---|---|
+| Network (both VMs) | NAT Network `NatNetwork` instead of plain NAT | VMs must see each other; the campus network filters Bridged adapters (Step 4) |
+| Unattended installation (both VMs) | Unticked | The guide matches what is on screen (Steps 5, 11) |
+| Ubuntu memory | 2048 MB | Smooth for a developer; leaves 10 GB for the laptop (Step 6) |
+| Ubuntu CPUs | 2 | Responsive package installs |
+| Ubuntu disk | 25 GB, dynamic | Uses about 5 GB at first (Step 7) |
+| Windows memory | 4096 MB | Windows 11 minimum (Step 12) |
+| Windows CPUs | 2 | Windows 11 minimum |
+| Windows disk | 64 GB, dynamic | Windows 11 minimum; no need for more on a test machine |
+| Windows EFI, Secure Boot, TPM | On, v2.0 | Windows 11 will not install without them (Step 13) |
+| Windows firewall | Ping allowed in | So Ubuntu can reach Windows (Step 17) |
