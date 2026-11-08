@@ -20,7 +20,7 @@ The VirtualBox in the screenshots is in Russian. English names are given in brac
 | Internet | About 9 GB of downloads | VirtualBox (~100 MB) + Ubuntu ISO (~2 GB) + Windows ISO (~6 GB). |
 | Time | About 2 hours, mostly waiting for installers | |
 
-**Licences.** VirtualBox and Ubuntu are free. Windows needs a licence for long-term use. Without a product key it installs and runs, but shows an "Activate Windows" watermark and locks some personalisation. That is fine for a test machine; for a permanent one the company must buy a licence.
+**Licences.** VirtualBox and Ubuntu are free. Windows is the Enterprise **Evaluation** version: free, no key, but valid for 90 days. After that it must be rebuilt or the company must buy a licence. For a short-lived test machine this is acceptable.
 
 ---
 
@@ -47,14 +47,15 @@ Why Server and not Desktop: Server has no graphical interface, so it needs far l
 
 > **Check:** the file is in `Downloads` and is about 2 GB.
 
+
 ### Step 3. Download the Windows 11 ISO
-1. Open `https://www.microsoft.com/software-download/windows11`.
-2. Scroll to **Download Windows 11 Disk Image (ISO) for x64 devices**, choose **Windows 11 (multi-edition ISO)**, click **Download**, choose **English** and confirm.
-3. Download the 64-bit file (about 6 GB; Microsoft's link works for 24 hours).
+1. Open the Microsoft Evaluation Center (`https://www.microsoft.com/evalcenter`) and find **Windows 11 Enterprise**.
+2. Choose the **ISO** download, language **English (United States)**, and download it (about 5–6 GB). The file name looks like `26100....CLIENT_LTSC_EVAL_x64FRE_en-us.iso`.
 
-Why: an ISO is a digital copy of the installation disc. The VM "inserts" it instead of a real DVD.
+Why this one: it is Microsoft's own free evaluation version, so it needs no product key. The limit is time: it works for 90 days, then it must be replaced or licensed.
 
-> **Check:** the file `Win11_..._x64.iso` is in `Downloads`.
+> **Check:** the file is in `Downloads` and is about 5–6 GB.
+
 
 ---
 
@@ -176,9 +177,9 @@ ip addr
 1. Click **Создать** (New).
 2. **Имя ВМ**: `lab02-windows`.
 3. **Образ ISO**: **Другой…** and select the Windows ISO.
-4. If the **Редакция** (Edition) list appears, choose **Windows 11 Pro**.
-5. Check that **ОС** = `Microsoft Windows`, **Версия** = `Windows 11 (64-bit)`.
-6. Tick **Пропустить автоматическую установку** (Skip Unattended Installation).
+4. The **Редакция ОС** (Edition) field is filled in by VirtualBox itself and is greyed out: `Windows 11 Enterprise LTSC Evaluation`. Do not change it.
+5. Check that **ОС** = `Microsoft Windows`, **Версия ОС** = `Windows 11 (64-bit)`.
+6. Leave **Осуществить установку автоматически** (Proceed with Unattended Installation) **unticked**.
 
 ![](evidence/07a-windows-wizard.png)
 
