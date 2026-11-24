@@ -1,1 +1,43 @@
-
+role,component,model,price_kzt,source,date
+accountant,CPU,Intel Core i3-12100 OEM,66989,https://kaspi.kz/shop/p/intel-core-i3-12100-oem-149288995/?c=750000000,2026-11-22
+accountant,Cooler,ID-COOLING SE-802-SD V3,4360,https://www.dns-shop.kz/product/4e60afe368b9ed20/kuler-dla-processora-id-cooling-se-802-sd-v3-cernyj/,2026-11-22
+accountant,Motherboard,GIGABYTE H610M K DDR4,31875,https://kaspi.kz/shop/p/gigabyte-h610m-k-ddr4-109704423/?c=750000000,2026-11-22
+accountant,Memory,Kingston Fury Beast KF432C16BBK2/16 16GB (2x8GB) DDR4,114000,https://kaspi.kz/shop/p/kingston-fury-beast-kf432c16bbk2-16-16-gb-101900315/?c=750000000,2026-11-22
+accountant,Storage,Samsung 990 PRO 1000GB M.2 NVMe,141150,https://www.dns-shop.kz/product/39779619c38e0fd2/1000-gb-m2-nvme-nakopitel-samsung-990-pro-mz-v9p1t0bw/,2026-11-22
+accountant,PSU,Deepcool PF450 450W,29999,https://kaspi.kz/shop/p/deepcool-pf450-450-vt-119594633/,2026-11-22
+accountant,Case,LIAN LI A3-mATX-WD,69999,https://kaspi.kz/shop/p/lian-li-a3-matx-wd-g99-a3x-wd-00-chernyi-135445510/?c=750000000,2026-11-22
+accountant,Monitor,23.8" Xiaomi Monitor A24i,45990,https://kaspi.kz/shop/p/23-8-xiaomi-monitor-a24i-ela5444eu-chernyi-131818125/?c=750000000,2026-11-22
+accountant,OS,Microsoft Windows 11 Professional 64-bit,46885,https://kaspi.kz/shop/p/microsoft-windows-11-professional-64-bit-111392900/?c=750000000,2026-11-22
+accountant,Subtotal,Accountant Workstation Total,551247,,2026-11-22
+sales,CPU,AMD Ryzen 5 5600G OEM,99990,https://kaspi.kz/shop/p/amd-ryzen-5-5600g-oem-102228970/,2026-11-22
+sales,Cooler,ID-COOLING SE-802-SD V3,4360,https://www.dns-shop.kz/product/4e60afe368b9ed20/kuler-dla-processora-id-cooling-se-802-sd-v3-cernyj/,2026-11-22
+sales,Motherboard,MSI A520M-A PRO,34990,https://www.dns-shop.kz/product/13bf2d4ecbcf3332/materinskaa-plata-msi-a520m-a-pro/,2026-11-22
+sales,Memory,Kingston Fury Beast KF436C18BBK2/32 32GB (2x16GB) DDR4,299256,https://kaspi.kz/shop/p/kingston-fury-beast-kf436c18bbk2-32-32gb-102893492/,2026-11-22
+sales,Storage,Samsung 990 PRO 1000GB M.2 NVMe,141150,https://www.dns-shop.kz/product/39779619c38e0fd2/1000-gb-m2-nvme-nakopitel-samsung-990-pro-mz-v9p1t0bw/,2026-11-22
+sales,PSU,Deepcool PF450 450W,29999,https://kaspi.kz/shop/p/deepcool-pf450-450-vt-119594633/,2026-11-22
+sales,Case,LIAN LI A3-mATX-WD,69999,https://kaspi.kz/shop/p/lian-li-a3-matx-wd-g99-a3x-wd-00-chernyi-135445510/?c=750000000,2026-11-22
+sales,Monitor,23.8" Xiaomi Monitor A24i,45990,https://kaspi.kz/shop/p/23-8-xiaomi-monitor-a24i-ela5444eu-chernyi-131818125/?c=750000000,2026-11-22
+sales,OS,Microsoft Windows 11 Professional 64-bit,46885,https://kaspi.kz/shop/p/microsoft-windows-11-professional-64-bit-111392900/?c=750000000,2026-11-22
+sales,Subtotal,Sales Manager Workstation Total,772619,,2026-11-22
+web-developer,CPU,Intel Core i5-12400 OEM,79169,https://itmag.kz/p/72397-processor-intel-core-i5-12400-1700/,2026-11-22
+web-developer,Cooler,ID-COOLING SE-802-SD V3,4360,https://www.dns-shop.kz/product/4e60afe368b9ed20/kuler-dla-processora-id-cooling-se-802-sd-v3-cernyj/,2026-11-22
+web-developer,Motherboard,GIGABYTE H610M K DDR4,31875,https://kaspi.kz/shop/p/gigabyte-h610m-k-ddr4-109704423/?c=750000000,2026-11-22
+web-developer,Memory,Kingston Fury Beast KF436C18BBK2/32 32GB (2x16GB) DDR4,299256,https://kaspi.kz/shop/p/kingston-fury-beast-kf436c18bbk2-32-32gb-102893492/,2026-11-22
+web-developer,Storage,ADATA LEGEND 710 1000GB M.2 NVMe,60870,https://www.dns-shop.kz/product/29562e12a676ed20/1000-gb-m2-nvme-nakopitel-adata-legend-710-aleg-710-1tcs/,2026-11-22
+web-developer,PSU,Deepcool PF450 450W,29999,https://kaspi.kz/shop/p/deepcool-pf450-450-vt-119594633/,2026-11-22
+web-developer,Case,DEEPCOOL MATREXX 30,13960,https://www.dns-shop.kz/product/542050e0358e3332/korpus-deepcool-matrexx-30-dp-matx-matrexx30-cernyj/,2026-11-22
+web-developer,Monitor,23.8" Xiaomi Monitor A24i,45990,https://kaspi.kz/shop/p/23-8-xiaomi-monitor-a24i-ela5444eu-chernyi-131818125/?c=750000000,2026-11-22
+web-developer,OS,Ubuntu 26.04.1 LTS Desktop,0,https://ubuntu.com/download/desktop,2026-11-22
+web-developer,Subtotal,Web Developer Workstation Total,565479,,2026-11-22
+designer,CPU,Intel Core i5-12400 OEM,79169,https://itmag.kz/p/72397-processor-intel-core-i5-12400-1700/,2026-11-22
+designer,Cooler,ID-COOLING SE-802-SD V3,4360,https://www.dns-shop.kz/product/4e60afe368b9ed20/kuler-dla-processora-id-cooling-se-802-sd-v3-cernyj/,2026-11-22
+designer,Motherboard,GIGABYTE H610M K DDR4,31875,https://kaspi.kz/shop/p/gigabyte-h610m-k-ddr4-109704423/?c=750000000,2026-11-22
+designer,Memory,Kingston Fury Beast KF436C18BBK2/32 32GB (2x16GB) DDR4,299256,https://kaspi.kz/shop/p/kingston-fury-beast-kf436c18bbk2-32-32gb-102893492/,2026-11-22
+designer,Storage,Samsung 990 PRO 1000GB M.2 NVMe,141150,https://www.dns-shop.kz/product/39779619c38e0fd2/1000-gb-m2-nvme-nakopitel-samsung-990-pro-mz-v9p1t0bw/,2026-11-22
+designer,GPU,GIGABYTE GeForce RTX 3060 GAMING OC 12GB,234000,https://www.dns-shop.kz/product/1110e3f5aef22eb1/videokarta-gigabyte-geforce-rtx-3060-gaming-oc-lhr-gv-n3060gaming-oc-12gd-rev20/,2026-11-22
+designer,PSU,DEEPCOOL PF600 600W,22200,https://www.dns-shop.kz/product/16ed5812fa5ed763/blok-pitania-deepcool-pf600-r-pf600d-ha0b-eu-cernyj/,2026-11-22
+designer,Case,LIAN LI A3-mATX-WD,69999,https://kaspi.kz/shop/p/lian-li-a3-matx-wd-g99-a3x-wd-00-chernyi-135445510/?c=750000000,2026-11-22
+designer,Monitor,Dell Pro 27 QHD Monitor E2726DS,103169,https://itmag.kz/p/139826-dell-pro-27-qhd-monitor-e2726ds-ips-2560/,2026-11-22
+designer,OS,Microsoft Windows 11 Professional 64-bit,46885,https://kaspi.kz/shop/p/microsoft-windows-11-professional-64-bit-111392900/?c=750000000,2026-11-22
+designer,Subtotal,Designer Workstation Total,1032063,,2026-11-22
+all,Grand Total,All Four Workstations Total,2921408,,2026-11-22
