@@ -262,7 +262,6 @@ ping google.com
 * Under Ethernet adapter, note the **IPv4 Address** (`10.0.2.x`; in this build: `10.0.2.3`, recorded in `evidence/05-ping-between-guests.txt`). **Write it down.**
 * Both pings must show `Lost = 0 (0% loss)`.
 
-Why two pings: `1.1.1.1` tests raw IP routing, while `google.com` verifies that DNS name resolution also works for the developer.
 
 > **Check:** `0% loss` on both commands.
 
