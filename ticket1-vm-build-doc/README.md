@@ -44,7 +44,7 @@
 | Ubuntu memory / CPUs | 1024 MB / 1 CPU | 2048 MB / 2 CPUs | 1 GB and 1 CPU is sluggish during updates and builds; 2 GB and 2 CPUs runs a headless server smoothly. |
 | Ubuntu disk | 10 GB dynamic | 25 GB dynamic | Provides room for developer tools while using only `5.16 GB` on the host initially. |
 | Ubuntu installation options | OpenSSH unticked, snaps optional | OpenSSH Server ticked, no snaps | OpenSSH enables remote terminal access; skipping snaps keeps the installation fast and lean. |
-| Windows firewall & security | Varies by template | UEFI + Secure Boot + TPM `2.0` | Windows 11 Setup refuses to install without UEFI, Secure Boot, and TPM 2.0. |
+| Windows firmware & security | Varies by template | UEFI + Secure Boot + TPM `2.0` | Windows 11 Setup refuses to install without UEFI, Secure Boot, and TPM 2.0. |
 | Windows Firewall rule | Inbound ICMPv4 blocked | Inbound ICMPv4 Echo allowed | Allows Ubuntu to ping Windows to verify connectivity without disabling the entire firewall. |
 
 Windows memory (`4096 MB`), CPUs (`2`) and disk (`80 GB` dynamic) were left at the values VirtualBox proposes for Windows 11, so they are not in the table. They already meet Microsoft's minimum (4 GB RAM, 2 CPUs, 64 GB disk).
@@ -61,7 +61,7 @@ Windows memory (`4096 MB`), CPUs (`2`) and disk (`80 GB` dynamic) were left at t
 * **Disk:** Combined virtual limit is **25 GB + 80 GB = 105 GB** out of **240 GB** free. With dynamic allocation, actual use on the host SSD is about **39 GB** (`5.16 GB` for Ubuntu + `33.65 GB` for Windows).
 
 **One thing that went wrong, and how I fixed it:**
-1. **Windows Firewall blocking ping:** Ubuntu's first ping to Windows (`10.0.2.3`) timed out with 100% packet loss, although Windows could already ping Ubuntu. Windows blocks inbound ICMPv4 Echo by default. Adding a single inbound firewall rule (`New-NetFirewallRule`) fixed it without weakening firewall protection. I reproduced the failure afterwards by disabling and re-enabling the rule, and kept both outputs in `evidence/05b-firewall-problem.txt`.
+1. **Windows Firewall blocking ping:** Ubuntu's initial ping to Windows (`10.0.2.3`) timed out with 100% packet loss because Windows blocks inbound ICMPv4 Echo by default. Adding a single inbound firewall rule (`New-NetFirewallRule`) fixed it without weakening firewall protection.
 2. **Ubuntu LVM default root size:** Choosing *Use an entire disk* with Ubuntu's default LVM layout allocated `12G` of the 25 GB virtual disk to the root partition (`/`) while leaving the rest unallocated in the volume group (shown by `df -h /` in `evidence/04-guest-uname.txt`). Since only `5.6G` is used initially, 12 GB is enough for testing, and I documented `sudo lvextend -r -l +100%FREE /dev/ubuntu-vg/ubuntu-lv` in `BUILD.md` so the full 25 GB can be claimed whenever needed.
 
 ## 4. Evidence
@@ -78,7 +78,6 @@ Every text file starts with `# Proves: ...` and keeps unedited command outputs; 
 * [evidence/03-network-adapter.png](evidence/03-network-adapter.png) — Network adapter settings for `lab01-ubuntu` attached to `NatNetwork` (MAC `0800271ED727`, matching `05`).
 * [evidence/04-guest-uname.txt](evidence/04-guest-uname.txt) — Unedited terminal commands and output (`uname -a`, `lsb_release -a`, `hostname`, `df -h /`) confirming Ubuntu 26.04.1 LTS on `lab01-ubuntu`.
 * [evidence/05-ping-between-guests.txt](evidence/05-ping-between-guests.txt) — Unedited commands and output from Windows (`10.0.2.3`) and Ubuntu (`10.0.2.15`) showing bidirectional ping with 0% loss and internet reachability (`1.1.1.1`).
-* [evidence/05b-firewall-problem.txt](evidence/05b-firewall-problem.txt) — Linux→Windows ping with the Windows firewall rule disabled (fails) and enabled (works); reproduced afterwards, unedited.
 * [evidence/06-snapshot-list.png](evidence/06-snapshot-list.png) — VirtualBox Snapshots panel for `lab01-ubuntu` showing the `clean-install` snapshot.
 * [evidence/06b-snapshot-list-windows.png](evidence/06b-snapshot-list-windows.png) — VirtualBox Snapshots panel for `lab02-windows` showing the `clean-install` snapshot.
 * [evidence/07a-windows-wizard.png](evidence/07a-windows-wizard.png) — New VM wizard for `lab02-windows` with the Windows 11 Enterprise LTSC Evaluation ISO attached and unattended installation unticked.
