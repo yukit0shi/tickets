@@ -15,7 +15,7 @@ The VirtualBox interface in the screenshots is in Russian. English button names 
 
 | Item | Requirement | Why |
 |---|---|---|
-| Laptop | Windows 10/11, **16 GB RAM**, **100+ GB free disk**, 4+ CPU cores | The two VMs use 6 GB RAM combined (2 GB + 4 GB) and up to 89 GB disk (25 + 64 GB), leaving 10 GB RAM for the laptop itself. |
+| Laptop | Windows 10/11, **16 GB RAM**, **120+ GB free disk**, 4+ CPU cores | The two VMs use 6 GB RAM combined (2 GB + 4 GB) and up to 105 GB disk (25 + 80 GB), leaving 10 GB RAM for the laptop itself. |
 | Virtualisation | Enabled in BIOS/UEFI (Intel VT-x or AMD-V / SVM) | Without hardware virtualisation, VirtualBox cannot run 64-bit VMs. Open *Task Manager → Performance → CPU* and confirm **Virtualization** says *Enabled*. |
 | Internet | About 9 GB of downloads | VirtualBox (~100 MB) + Ubuntu ISO (~2 GB) + Windows ISO (~6 GB). |
 | Time | About 1.5–2 hours (mostly installer progress bars) | |
@@ -32,10 +32,11 @@ Save all files into your `Downloads` folder.
 1. Open `https://www.virtualbox.org/wiki/Downloads` in a browser.
 2. Under **VirtualBox Platform Packages**, click **Windows hosts** (this guide uses VirtualBox `7.2.22`) and run the downloaded `.exe` installer.
 3. Click **Next** on every screen and **Install** at the end. A warning that your network connection will briefly reset is normal — click **Yes**.
+4. Do **not** download the *Extension Pack* shown on the same page. This guide does not need it, and its licence allows only personal and educational use.
 
 ![VirtualBox download page](evidence/00a-virtualbox-download.png)
 
-Why: VirtualBox is the free (GPLv3) hypervisor that runs the virtual computers inside Windows.
+Why: VirtualBox is the free (GPLv3) hypervisor that runs the virtual computers inside Windows. Only the Extension Pack has a restricted licence, so skipping it keeps the office on the safe side.
 
 > **Check:** VirtualBox opens and displays an empty machine list on the left.
 
@@ -125,7 +126,7 @@ To verify: select `lab01-ubuntu` → **Настроить** (Settings) → **Н�
 ### Step 8. Attach Ubuntu to `NatNetwork`
 1. Select `lab01-ubuntu` → **Настроить** (Settings) → **Сеть** (Network) → **Адаптер 1** (Adapter 1).
 2. **Тип подключения** (Attached to): `Сеть NAT` (NAT Network).
-3. **Имя** (Name): `NatNetwork`. Click **OK**.
+3. **Имя** (Name): `NatNetwork`. Leave everything else as it is. Click **OK**.
 
 ![Ubuntu network adapter](evidence/03-network-adapter.png)
 
@@ -201,12 +202,16 @@ Why unticked: avoids auto-creating hidden accounts and ensures you can configure
    * **Число ЦПУ** (Processors): `2`.
    * **Использовать EFI** (Enable EFI): **ticked**.
 2. Expand **Укажите виртуальный жёсткий диск** (Specify virtual hard disk):
-   * Set size to `64 GB` and leave **Выделить место в полном размере** (Pre-allocate Full Size) **unticked**.
+   * Leave the size at the default `80 GB` and leave **Выделить место в полном размере** (Pre-allocate Full Size) **unticked**.
 3. Click **Готово** (Finish).
 
-Why: 4 GB RAM, 2 CPUs, and 64 GB storage are Microsoft's official minimum requirements for Windows 11. Dynamic storage keeps initial SSD usage around 22 GB.
+To verify: select `lab02-windows` → **Настроить** (Settings) → **Носители** (Storage) → click `lab02-windows.vdi`.
 
-> **Check:** `lab02-windows` appears in the left sidebar.
+![Windows disk properties](evidence/02b-windows-disk.png)
+
+Why: Windows 11 needs at least 4 GB RAM, 2 CPUs and 64 GB of disk. The 80 GB default leaves room for updates, and a dynamic disk only takes the space that is actually written (about 34 GB after installation and updates).
+
+> **Check:** the panel shows **Вирт. размер** `80,00 ГБ` and **Атрибуты** `Динамически расширяющийся`. Other entries in the list on that screenshot (`lab04-win.vdi`, `VBoxGuestAdditions.iso`) belong to later work and are not part of this guide.
 
 ### Step 13. Enable EFI, Secure Boot, and TPM 2.0 (critical)
 Windows 11 refuses to install without UEFI, Secure Boot, and a TPM 2.0 chip. Configure this **before** starting the VM:
@@ -236,15 +241,15 @@ Why: places Windows on the exact same virtual subnet (`10.0.2.0/24`) as `lab01-u
 2. Confirm Language/Keyboard → **Next** → **Install now**.
 3. If prompted for a product key, click **I don't have a product key** (or select **Windows 11 Enterprise Evaluation** if asked for an edition). Accept the licence terms → **Next**.
 4. Choose **Custom: Install Windows only (advanced)**.
-5. Select **Drive 0 Unallocated Space** (64 GB) → **Next**. Windows will copy files and reboot several times (10–20 minutes). Do **not** press a key at *"Press any key…"* on subsequent reboots.
+5. Select **Drive 0 Unallocated Space** (80 GB) → **Next**. Windows will copy files and reboot several times (10–20 minutes). Do **not** press a key at *"Press any key…"* on subsequent reboots.
 6. Complete the out-of-box setup (region, keyboard, device name `lab02-windows`).
-7. When prompted to sign in with a Microsoft account, press **Shift + F10**, type `start ms-cxh:localonly` (or use *Sign-in options → Domain join instead*), and create a local username and password. Decline optional telemetry/privacy toggles.
+7. If you are asked to sign in with a Microsoft account, press **Shift + F10**, type `start ms-cxh:localonly`, and create a local username and password. Decline optional telemetry/privacy toggles.
 
 ![Finished Windows desktop](evidence/07c-windows-installer.png)
 
 Why a local account: the machine is a test box, and a Microsoft account would tie it to a personal login.
 
-> **Check:** you reach the Windows 11 desktop with the Start menu visible and the Windows 11 Enterprise LTSC Evaluation label in the bottom-right corner.
+> **Check:** you reach the Windows 11 desktop with the Start menu visible and the *Windows 11 Enterprise LTSC Evaluation* label in the bottom-right corner.
 
 ---
 
@@ -256,17 +261,17 @@ Open **Start**, type `PowerShell`, and press **Enter**. Run:
 ```powershell
 ipconfig
 ping 1.1.1.1
-ping google.com
 ```
 
 * Under Ethernet adapter, note the **IPv4 Address** (`10.0.2.x`; in this build: `10.0.2.3`, recorded in `evidence/05-ping-between-guests.txt`). **Write it down.**
-* Both pings must show `Lost = 0 (0% loss)`.
+* The ping must show `Lost = 0 (0% loss)`.
 
+Why this ping: `1.1.1.1` is an internet address given as numbers, so a reply proves that traffic leaves the virtual network and reaches the internet.
 
-> **Check:** `0% loss` on both commands.
+> **Check:** `0% loss`.
 
 ### Step 17. Allow incoming ping on Windows Firewall
-Windows blocks incoming ping (ICMPv4) by default, which causes Linux-to-Windows pings to time out. Open **PowerShell as Administrator** (right-click Start → *Terminal (Admin)* or search PowerShell → *Run as administrator*) and run:
+Windows blocks incoming ping (ICMPv4) by default, which causes Linux-to-Windows pings to time out (this happened during this build, see `evidence/05b-firewall-problem.txt`). Open **PowerShell as Administrator** (right-click Start → *Terminal (Admin)* or search PowerShell → *Run as administrator*) and run:
 
 ```powershell
 New-NetFirewallRule -DisplayName "Allow Ping ICMPv4" -Protocol ICMPv4 -IcmpType 8 -Direction Inbound -Action Allow
@@ -334,7 +339,7 @@ Why untick: otherwise VirtualBox saves the broken state as a new snapshot and cl
 | # | Symptom | Cause | Fix |
 |---|---|---|---|
 | 1 | VM fails to start with `VERR_VMX_NO_VMX` or `VT-x / AMD-V` error | Hardware virtualisation is disabled in BIOS/UEFI | Reboot the laptop, open BIOS (F2/F10/Del), enable *Intel VT-x* or *AMD SVM Mode*, save and exit. |
-| 2 | Windows Setup says *"This PC can't run Windows 11"* | EFI, Secure Boot, TPM 2.0, 4 GB RAM, or 64 GB disk is missing | Power off the VM and repeat Steps 12 and 13. |
+| 2 | Windows Setup says *"This PC can't run Windows 11"* | EFI, Secure Boot, TPM 2.0, 4 GB RAM, or a disk of at least 64 GB is missing | Power off the VM and repeat Steps 12 and 13. |
 | 3 | Windows boots to a small black 640×480 screen and freezes | Virtual graphics controller mismatch | Power off the VM → **Настроить** (Settings) → **Дисплей** (Display) → set **Графический контроллер** (Graphics Controller) to `VMSVGA` → start again. |
 | 4 | VM shows *Aborted* or disk shows *Inaccessible* (`VERR_FILE_NOT_FOUND`) | The VM or its files were removed while the VM was still running | Always power off a VM before removing it. Right-click the broken entry → **Удалить** (Remove) and recreate it from Step 5 or Step 11. |
 | 5 | Both VMs get the exact same IP (`10.0.2.15`) and cannot ping each other | Adapters are set to plain `NAT` instead of `Сеть NAT` (NAT Network) | Change Adapter 1 on both VMs to `Сеть NAT` → `NatNetwork` (Steps 8 and 14) and reboot both guests. |
