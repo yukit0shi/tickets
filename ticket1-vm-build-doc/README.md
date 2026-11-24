@@ -12,69 +12,77 @@
 
 ## 2. What was actually needed
 
-**The real reader of the deliverable is Aigerim, not the developer.** She is an office manager and will repeat the build herself, so `BUILD.md` assumes no IT knowledge: it starts with the downloads, explains every choice in one or two sentences, has a **Check** line after every step, a troubleshooting table and a separate rollback section. The developer only uses the result.
+| Missing from the request | What I would have asked | What I assumed |
+|---|---|---|
+| Which operating system(s) | Does the new developer work on Linux, Windows, or both? | Both **Ubuntu Server 26.04.1 LTS** and **Windows 11 Enterprise LTSC Evaluation**, because a developer test setup commonly needs both platforms and the course brief requires both[cite: 1, 2]. |
+| Physical computer vs virtual machine | Are we buying/issuing a separate physical PC, or running VMs on an existing laptop? | Two **virtual machines** in Oracle VirtualBox on an existing host[cite: 2]. A physical PC costs money and cannot be reset in seconds[cite: 2, 4]. |
+| Host hardware capacity | How much RAM, CPU, and free disk space does the host laptop have? | My host specs: **16 GB RAM**, **16 logical CPUs**, and **240 GB free disk space**[cite: 2, 11]. Guests are sized so the host stays responsive (see Section 3)[cite: 2, 4]. |
+| Network and connectivity | Does the test machine need internet access, and must the two guests reach each other? | Yes to both[cite: 2, 4]. Both VMs share one virtual **NAT Network** (`NatNetwork`)[cite: 1, 2]. |
+| Licensing and duration | Does the company own Windows licences, or is this a short-term test environment? | No retail or volume key is available[cite: 2, 4]. VirtualBox and Ubuntu are free; for Windows I used Microsoft's official **90-day Evaluation** edition, which is legal for testing without a product key[cite: 2, 4]. |
+| Reader's technical level | How technical is the person who will repeat this build next time? | A non-IT office manager who has never opened a hypervisor[cite: 1, 2]. Therefore `BUILD.md` starts from downloads, explains every choice, includes a **Check** after every step, and has a troubleshooting table[cite: 2, 4]. |
 
-**"Test computer" does not mean a physical computer.** The request sounds like buying or configuring a PC, but "try things without breaking anything" is a requirement for isolation and undo. A virtual machine on an existing laptop gives both: it needs no new hardware, and a snapshot returns it to a clean state in seconds. I assumed a VM in Oracle VirtualBox.
-
-**"Nothing special" hides several decisions the request does not make.** What I assumed instead of an answer:
-
-| Left out | What I assumed |
-|---|---|
-| Which operating system the developer needs | Both Linux (Ubuntu Server 26.04.1 LTS) and Windows 11, because the course brief asks for both and the request does not say |
-| Host RAM and disk | My laptop: 16 GB RAM, 240 GB free. Guests sized from these figures (section 3) |
-| Internet access and whether the machines must see each other | Yes to both; one shared NAT Network |
-| Licences | Ubuntu and VirtualBox are free. Windows needs a licence. I used Windows 11 Enterprise LTSC **Evaluation**, which is free but expires after 90 days. For a permanent machine the company must buy a licence; this is a decision for the manager, not the technician |
-| Rollback ("without breaking anything") | A snapshot named `clean-install` on each VM, with a documented restore procedure |
-| Who will rebuild it | Aigerim, with no IT background, which is why the guide includes downloading VirtualBox and the ISOs and a troubleshooting table |
-
-**What I would have asked Aigerim:**
-1. Does the developer work on Linux, Windows or both?
-2. Does the company already have Windows licences, or is a 90-day evaluation acceptable?
-3. How much RAM and free disk does the laptop that will host the VM have?
-4. Must the VM reach company shares or only the internet?
-5. Is the machine for one week of testing or for permanent use? That decides whether a licence and updates matter.
-
-**Where the request was wrong or misleading:** "set up a computer" suggests a physical one; a VM is cheaper, faster to reset and safer. "Nothing special" is also wrong: even a "simple" VM needs about ten decisions (sizing, networking, licences, rollback), and the document has to make them for a reader who cannot.
+**Where the request is wrong or misleading:**
+* **"Set up a test computer"** implies configuring a physical machine; a VM is cheaper, isolates experiments from the host OS, and resets in seconds[cite: 2, 4].
+* **"Nothing special, just so he can try things without breaking anything"** is contradictory: safe experimentation requires isolating the OS in a hypervisor and saving a **clean snapshot** before work begins, plus documenting how to roll back[cite: 2, 4]. Without a snapshot, breaking the guest still forces a full reinstall[cite: 4]. Even a "basic" VM requires concrete decisions on memory, disk allocation, UEFI/TPM, firewall rules, and licensing[cite: 2].
 
 ## 3. What I did
 
-Steps in order are in [`BUILD.md`](BUILD.md) (19 steps, troubleshooting, rollback). In short: installed VirtualBox, created a shared `NatNetwork`, built `lab01-ubuntu` and `lab02-windows`, allowed ping in the Windows firewall, tested both directions and the internet, took a `clean-install` snapshot of each machine.
+1. Checked host capacity and hardware virtualisation, then installed Oracle VirtualBox `7.2.22`[cite: 4, 13].
+2. Created a shared virtual network (`NatNetwork`, `10.0.2.0/24`) with DHCP enabled and SSH port forwarding (`2222 -> 10.0.2.15:22`)[cite: 14].
+3. Built `lab01-ubuntu` (Ubuntu Server 26.04.1 LTS), verified system info and LVM disk layout, and created the `clean-install` snapshot[cite: 1, 2].
+4. Built `lab02-windows` (Windows 11 Enterprise LTSC Evaluation) with UEFI, Secure Boot, and virtual TPM 2.0, allowed inbound ICMPv4 ping in Windows Firewall, and created the `clean-install` snapshot[cite: 1, 2].
+5. Verified IP addresses, bidirectional ping between both guests, and internet reachability (`1.1.1.1`) from both guests[cite: 2, 5].
+6. Tested snapshot rollback and documented the full build and troubleshooting steps in [`BUILD.md`](BUILD.md)[cite: 1, 2].
 
-**Settings that differ from VirtualBox's defaults, and why:**
+**Settings that differ from VirtualBox defaults, and why:**
 
-| Setting | Value | Why |
-|---|---|---|
-| Network (both) | NAT Network `NatNetwork` instead of NAT | Plain NAT hides each VM from the other; the campus network filters Bridged adapters by MAC |
-| Ubuntu memory / CPUs | 2048 MB / 2 | Default 1024 MB and 1 CPU is slow for development; 2 GB is enough for Server |
-| Ubuntu disk | 25 GB, dynamic | Real size at the start is about 5 GB (`evidence/02-disk-settings.png`) |
-| Windows memory / CPUs / disk | 4096 MB / 2 / 64 GB dynamic | Windows 11 minimum requirements |
-| Windows EFI, Secure Boot, TPM | On, TPM v2.0 | The Windows 11 installer refuses to continue without them |
-| Windows firewall | Inbound ping (ICMPv4) allowed | Otherwise Ubuntu cannot ping Windows |
+| Setting | Default | Mine | Why |
+|---|---|---|---|
+| Network mode (both VMs) | Plain `NAT` | `NAT Network` (`NatNetwork`) | Plain NAT isolates VMs from each other; Bridged is rejected by campus MAC filtering[cite: 1, 2]. NAT Network provides both internet access and VM-to-VM communication[cite: 2, 3]. |
+| SSH port forwarding (`NatNetwork`) | None | Host `2222` → Guest `10.0.2.15:22` | Allows connecting to Ubuntu from the host terminal so commands and logs can be copied cleanly without console formatting glitches[cite: 2, 14]. |
+| Unattended installation (both VMs) | Ticked (when ISO is selected) | Unticked | Prevents VirtualBox from auto-generating hidden credentials and keeps the installer steps predictable for a non-IT reader[cite: 1]. |
+| Ubuntu memory / CPUs | 1024 MB / 1 CPU | 2048 MB / 2 CPUs | 1 GB and 1 CPU is sluggish during updates and builds; 2 GB and 2 CPUs runs a headless server smoothly[cite: 1, 2]. |
+| Ubuntu disk | 10 GB dynamic | 25 GB dynamic | Provides room for developer tools while using only `5.16 GB` on the host initially[cite: 1, 2, 9]. |
+| Ubuntu installation options | OpenSSH unticked, snaps optional | OpenSSH Server ticked, no snaps | OpenSSH enables remote terminal access; skipping snaps keeps the installation fast and lean[cite: 1, 4]. |
+| Windows memory / CPUs / disk | 4096 MB / 2 CPUs / 80 GB | 4096 MB / 2 CPUs / 64 GB dynamic | Matches official Windows 11 minimum requirements without reserving unnecessary disk space[cite: 1, 2]. |
+| Windows firmware & security | Varies by template | UEFI + Secure Boot + TPM `2.0` | Windows 11 Setup refuses to install without UEFI, Secure Boot, and TPM 2.0[cite: 1, 2, 18]. |
+| Windows Firewall | Inbound ICMPv4 blocked | Inbound ICMPv4 Echo allowed | Allows Ubuntu to ping Windows to verify connectivity without disabling the entire firewall[cite: 1, 2]. |
 
-**Resources calculated from the host:** 16 GB RAM. Ubuntu 2 GB + Windows 4 GB = 6 GB, which leaves 10 GB (62%) for the laptop. Disk: the limits add up to 25 + 64 = 89 GB, but both disks are dynamic: Ubuntu was 5.16 GB in use at the start, Windows ~22 GB, against 240 GB free on the host.
+**Alternatives considered:**
+* **NAT Network vs Bridged vs Plain NAT:** Plain NAT prevents the two guests from seeing each other[cite: 1, 3]. Bridged exposes each VM with its own MAC address on the physical LAN, which fails on the Innotech network due to MAC filtering[cite: 1, 2]. NAT Network hides both VMs behind the host IP while keeping them on `10.0.2.0/24`[cite: 1, 2]. Trade-off: external machines cannot initiate connections to the VMs without port forwarding[cite: 2].
+* **Dynamic vs pre-allocated disks:** Pre-allocated disks offer slightly faster I/O but immediately claim all 89 GB (25 + 64 GB) on the host SSD[cite: 2, 4]. Dynamic disks start at `5.16 GB` (Ubuntu) and ~22 GB (Windows), preserving host storage[cite: 2, 9].
+* **Windows 11 Enterprise Evaluation vs consumer ISO:** A consumer ISO installed without a key runs unactivated and is not properly licensed for office use[cite: 2]. The Evaluation edition is legally free for 90 days of testing; the trade-off is that it must be rebuilt or licensed after 90 days[cite: 2].
+* **Ubuntu Server vs Desktop:** Server omits the GUI, cutting RAM usage in half and leaving more headroom for Windows and the host[cite: 1, 2].
 
-**Decisions and alternatives:**
-- **NAT Network vs Bridged.** Bridged would let the VM be reached from other computers, but the Innotech network filters by MAC address and rejects the VM's own MAC. NAT Network passes traffic through the host's address and still lets the two VMs talk. The cost: nothing outside the laptop can reach the VMs without port forwarding.
-- **Dynamic vs pre-allocated disk.** Pre-allocation is slightly faster at runtime but takes all 89 GB at once. For a test machine on a shared laptop, saving space matters more than speed.
-- **Windows 11 Enterprise Evaluation vs a regular Windows 11 ISO.** A regular ISO installs without a key and has no time limit, but runs unactivated with a watermark and is not licensed for use. The Evaluation version is officially free and licensed for testing, but expires after 90 days. I chose it because the ticket is a test machine and I did not want to hand over an unlicensed system.
-- **Ubuntu Server vs Desktop.** Server uses far less memory and disk and has no graphical interface; a developer who needs a desktop can add one later.
-- **Allowing ping vs switching the firewall off.** One rule opens only ICMP echo; switching the firewall off removes all protection.
+**Resources, calculated from my host** ([впиши модель ноутбука и CPU из Lab 0], 16 logical processors, 16 GB RAM, 240 GB free disk space)[cite: 2, 11]:
+* **Memory:** At idle, Windows on the host uses about [впиши сколько ГБ ОЗУ занято в простое из Lab 0, например: 6 GB] of 16 GB RAM. Allocating **2 GB** to Ubuntu + **4 GB** to Windows = **6 GB** total for guests (37.5% of host RAM), leaving **10 GB** (about 4 GB free headroom above host idle usage) so the laptop does not swap or freeze when both VMs run simultaneously[cite: 1, 2].
+* **CPUs:** **2 vCPUs** (Ubuntu) + **2 vCPUs** (Windows) = **4 vCPUs** out of **16** logical processors on the host[cite: 11].
+* **Disk:** Combined virtual limit is **25 GB + 64 GB = 89 GB** out of **240 GB** free[cite: 2]. With dynamic allocation, actual initial disk usage on the host SSD is only **~27 GB** (`5.16 GB` for Ubuntu + ~22 GB for Windows)[cite: 2, 9].
 
-**One thing that went wrong:** the Ubuntu installer's default layout (LVM) gave the root partition 12 GB of the 25 GB disk, as `df -h /` shows in `evidence/04-guest-uname.txt`. I did not expect this and it would surprise anyone who looked at the disk size and the free space. I left it, because a test machine uses about 5.6 GB, and noted here that the rest remains free in the volume group and can be added with `sudo lvextend -r -l +100%FREE /dev/ubuntu-vg/ubuntu-lv`.
+**One thing that went wrong, and how I fixed it:**
+1. **Ubuntu LVM default root size:** Choosing *Use an entire disk* with Ubuntu's default LVM layout allocated `12G` of the 25 GB virtual disk to the root partition (`/`) while leaving the rest unallocated in the volume group (shown by `df -h /` in `evidence/04-guest-uname.txt`)[cite: 2, 6]. Since only `5.6G` is used initially, 12 GB is enough for testing, and I documented `sudo lvextend -r -l +100%FREE /dev/ubuntu-vg/ubuntu-lv` in `BUILD.md` so the full 25 GB can be claimed whenever needed[cite: 2, 6].
+2. **Windows Firewall blocking ping:** Ubuntu's initial ping to Windows (`10.0.2.3`) timed out with 100% packet loss because Windows blocks inbound ICMPv4 Echo by default[cite: 1, 3]. Adding a single inbound firewall rule (`New-NetFirewallRule`) fixed it without weakening firewall protection[cite: 1, 2].
 
 ## 4. Evidence
 
-- `01-new-vm-wizard.png` — Ubuntu wizard: name `lab01-ubuntu`, Linux / Ubuntu (64-bit), ISO selected.
-- `01b-ubuntu-cpu-ram.png` — Ubuntu has 2048 MB memory and 2 CPUs (non-default settings).
-- `01c-ubuntu-disk.png` — 25 GB disk, "pre-allocate" not selected.
-- `02-disk-settings.png` — the disk is dynamic: virtual size 25 GB, actual 5.16 GB.
-- `03-network-adapter.png` — adapter set to NAT Network `NatNetwork`; the MAC matches the one in `05`.
-- `04-guest-uname.txt` — `uname`, `lsb_release`, `hostname` and `df` from the guest: a working Ubuntu 26.04.1 LTS. Text, not edited.
-- `05-ping-between-guests.txt` — `ipconfig` / `ip addr` and ping output from both guests: they share the subnet `10.0.2.0/24` (Windows `10.0.2.3`, Ubuntu `10.0.2.15`), see each other in both directions with 0% loss, and both reach `1.1.1.1`. The file is assembled from two terminals (Windows PowerShell and Ubuntu); the output inside was not edited. Reaching each other proves the mode is NAT Network, because plain NAT cannot do that.
-- `06-snapshot-list.png` — `clean-install` snapshot of `lab01-ubuntu`.
-- `06b-snapshot-list-windows.png` — `clean-install` snapshot of `lab02-windows`.
-- `07-windows-vm-settings.png` — Windows VM: 4096 MB, EFI, Secure Boot, TPM 2.0.
+Every text file starts with `# Proves: ...` and keeps unedited command outputs; screenshots show the exact configuration screens[cite: 4, 5, 6].
+
+* [evidence/00a-virtualbox-download.png](evidence/00a-virtualbox-download.png) — Official VirtualBox `7.2.22` download page (GPLv3 platform package)[cite: 13].
+* [evidence/00-create-nat-network.png](evidence/00-create-nat-network.png) — VirtualBox Network Manager showing `NatNetwork` (`10.0.2.0/24`, DHCP enabled) and SSH port forwarding (`2222 -> 10.0.2.15:22`)[cite: 14].
+* [evidence/01-new-vm-wizard.png](evidence/01-new-vm-wizard.png) — New VM wizard for `lab01-ubuntu` with Ubuntu Server ISO attached and unattended installation unticked[cite: 12].
+* [evidence/01b-ubuntu-cpu-ram.png](evidence/01b-ubuntu-cpu-ram.png) — Hardware settings for `lab01-ubuntu`: `2048 MB` RAM, `2` CPUs, EFI unticked[cite: 11].
+* [evidence/01c-ubuntu-disk.png](evidence/01c-ubuntu-disk.png) — Virtual hard disk creation for `lab01-ubuntu`: `25.00 GB` VDI with *Pre-allocate Full Size* unticked[cite: 10].
+* [evidence/02-disk-settings.png](evidence/02-disk-settings.png) — Storage properties confirming `lab01-ubuntu.vdi` is dynamically allocated (`25.00 GB` virtual size, `5.16 GB` actual size)[cite: 9].
+* [evidence/03-network-adapter.png](evidence/03-network-adapter.png) — Network adapter settings for `lab01-ubuntu` attached to `NatNetwork` (MAC `0800271ED727`, matching `05`)[cite: 8].
+* [evidence/04-guest-uname.txt](evidence/04-guest-uname.txt) — Unedited terminal commands and output (`uname -a`, `lsb_release -a`, `hostname`, `df -h /`) confirming Ubuntu 26.04.1 LTS on `lab01-ubuntu`[cite: 6].
+* [evidence/05-ping-between-guests.txt](evidence/05-ping-between-guests.txt) — Unedited commands and output from Windows (`10.0.2.3`) and Ubuntu (`10.0.2.15`) showing bidirectional ping with 0% loss and internet reachability (`1.1.1.1`)[cite: 5].
+* [evidence/06-snapshot-list.png](evidence/06-snapshot-list.png) — VirtualBox Snapshots panel for `lab01-ubuntu` showing the `clean-install` snapshot[cite: 20].
+* [evidence/06b-snapshot-list-windows.png](evidence/06b-snapshot-list-windows.png) — VirtualBox Snapshots panel for `lab02-windows` showing the `clean-install` snapshot[cite: 19].
+* [evidence/07a-windows-wizard.png](evidence/07a-windows-wizard.png) — New VM wizard for `lab02-windows` with the Windows 11 Enterprise LTSC Evaluation ISO attached and unattended installation unticked[cite: 17].
+* [evidence/07-windows-vm-settings.png](evidence/07-windows-vm-settings.png) — System settings for `lab02-windows` showing `4096 MB` RAM, UEFI, Secure Boot, and TPM `2.0` enabled[cite: 18].
+* [evidence/07b-windows-network.png](evidence/07b-windows-network.png) — Network settings for `lab02-windows` attached to `NatNetwork`[cite: 16].
+* [evidence/07c-windows-installer.png](evidence/07c-windows-installer.png) — Completed Windows 11 Enterprise LTSC Evaluation desktop running inside VirtualBox[cite: 15].
 
 ## 5. What I would do differently
 
-My first submission had a ping log with lines I had edited by hand because I could not easily copy text from the VirtualBox console. Next time, I would set up SSH port forwarding from the very beginning to log into the Ubuntu machine from my host terminal. This allows recording every command in a terminal log cleanly without ever touching the output manually. I would also make sure to address the non-technical reader's perspective in the documentation right from the start.
+In my initial attempt, copying text directly from the VirtualBox console window caused formatting corruption in my ping log, and I had not structured the report around a non-technical reader from the start[cite: 2]. Next time, I would configure SSH port forwarding on `NatNetwork` (`2222 -> 10.0.2.15:22`) immediately after installing Ubuntu so I can connect from my host terminal and save clean, unedited logs directly into `evidence/` without console copy-paste glitches[cite: 2, 14]. I would also capture step-by-step screenshots during the initial build rather than recreating wizard screens afterward[cite: 4].
