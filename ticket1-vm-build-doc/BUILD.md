@@ -5,9 +5,9 @@ This guide builds two virtual machines (VMs) on one laptop, starting from nothin
 * `lab01-ubuntu` — Ubuntu Server 26.04.1 LTS (Linux)
 * `lab02-windows` — Windows 11 Enterprise LTSC Evaluation
 
-Both VMs can reach the internet and see each other, and each has a saved "clean" state you can return to in a few seconds if something breaks. You do not need any IT knowledge. Do the steps in order and do not skip the **Check** lines: they tell you whether to continue or stop.
+A virtual machine is a simulated computer running inside your real laptop (the *host*). Both VMs can reach the internet and communicate with each other, and each has a saved "clean" snapshot you can restore in a few seconds if the developer breaks anything. You do not need any IT background. Follow the steps in order and verify every **Check** line before moving on.
 
-The VirtualBox in the screenshots is in Russian. English names are given in brackets, e.g. **Создать** (New).
+The VirtualBox interface in the screenshots is in Russian. English button names are shown in brackets, e.g. **Создать** (New).
 
 ---
 
@@ -15,333 +15,334 @@ The VirtualBox in the screenshots is in Russian. English names are given in brac
 
 | Item | Requirement | Why |
 |---|---|---|
-| Laptop | Windows 10/11, **16 GB RAM**, **100 GB free disk**, 4+ CPU cores | The two VMs together take 6 GB RAM and up to 89 GB disk (25 + 64). The rest of the RAM is left for the laptop itself. |
-| Virtualisation | Switched on in the BIOS (called Intel VT-x or AMD-V / SVM) | Without it VirtualBox cannot start 64-bit VMs. Most laptops have it on. If a VM refuses to start, see Troubleshooting, problem 1. |
+| Laptop | Windows 10/11, **16 GB RAM**, **100+ GB free disk**, 4+ CPU cores | The two VMs use 6 GB RAM combined (2 GB + 4 GB) and up to 89 GB disk (25 + 64 GB), leaving 10 GB RAM for the laptop itself. |
+| Virtualisation | Enabled in BIOS/UEFI (Intel VT-x or AMD-V / SVM) | Without hardware virtualisation, VirtualBox cannot run 64-bit VMs. Open *Task Manager → Performance → CPU* and confirm **Virtualization** says *Enabled*. |
 | Internet | About 9 GB of downloads | VirtualBox (~100 MB) + Ubuntu ISO (~2 GB) + Windows ISO (~6 GB). |
-| Time | About 2 hours, mostly waiting for installers | |
+| Time | About 1.5–2 hours (mostly installer progress bars) | |
 
-**Licences.** VirtualBox and Ubuntu are free. Windows is the Enterprise **Evaluation** version: free, no key, but valid for 90 days. After that it must be rebuilt or the company must buy a licence. For a short-lived test machine this is acceptable.
+**Licences:** VirtualBox and Ubuntu are completely free. Windows is the official **Enterprise Evaluation** edition: free and needs no product key, but expires after 90 days. After 90 days it must be rebuilt or licensed by the company.
 
 ---
 
 ## 1. Download everything first
 
-Put all downloads in the `Downloads` folder.
+Save all files into your `Downloads` folder.
 
 ### Step 1. Download and install VirtualBox
 1. Open `https://www.virtualbox.org/wiki/Downloads` in a browser.
-2. Click **Windows hosts** and run the downloaded `.exe`.
-3. Click **Next** on every screen and **Install** at the end. A warning that the network will be briefly disconnected is normal: click **Yes**.
+2. Under **VirtualBox Platform Packages**, click **Windows hosts** (this guide uses VirtualBox `7.2.22`) and run the downloaded `.exe` installer.
+3. Click **Next** on every screen and **Install** at the end. A warning that your network connection will briefly reset is normal — click **Yes**.
 
 ![](evidence/00a-virtualbox-download.png)
 
-Why: VirtualBox is the free "hypervisor", the program that pretends to be a second computer inside your own.
+Why: VirtualBox is the free (GPLv3) hypervisor that runs the virtual computers inside Windows.
 
-> **Check:** VirtualBox opens and shows an empty list of machines on the left.
+> **Check:** VirtualBox opens and displays an empty machine list on the left.
 
 ### Step 2. Download the Ubuntu Server ISO
 1. Open `https://ubuntu.com/download/server`.
-2. Download **Ubuntu Server 26.04.1 LTS** (file name `ubuntu-26.04.1-live-server-amd64.iso`, about 2 GB).
+2. Download **Ubuntu Server 26.04.1 LTS** (`ubuntu-26.04.1-live-server-amd64.iso`, ~2 GB).
 
-Why Server and not Desktop: Server has no graphical interface, so it needs far less memory and disk. A developer who needs a desktop can add one later.
+Why Server and not Desktop: Server has no graphical desktop, so it needs far less RAM and disk space. A developer can install a GUI later if needed.
 
-> **Check:** the file is in `Downloads` and is about 2 GB.
+> **Check:** `ubuntu-26.04.1-live-server-amd64.iso` is in `Downloads` (~2 GB).
 
-### Step 3. Download the Windows 11 ISO
-1. Open the Microsoft Evaluation Center (`https://www.microsoft.com/evalcenter`) and find **Windows 11 Enterprise**.
-2. Choose the **ISO** download, language **English (United States)**, and download it (about 5–6 GB). The file name is `26100.1742.240906-0331.ge_release_svc_refresh_CLIENT_LTSC_EVAL_x64FRE_en-us.iso`.
+### Step 3. Download the Windows 11 Enterprise Evaluation ISO
+1. Open `https://www.microsoft.com/en-us/evalcenter/evaluate-windows-11-enterprise`.
+2. Click **Download the ISO** (Enterprise LTSC / Enterprise Evaluation), fill in the basic form if prompted, choose **64-bit** and language **English (United States)**, and download the `.iso` file (`26100.1742.240906-0331.ge_release_svc_refresh_CLIENT_LTSC_EVAL_x64FRE_en-us.iso`, ~5–6 GB).
 
-Why this one: it is Microsoft's own free evaluation version, so it needs no product key. The limit is time: it works for 90 days, then it must be replaced or licensed.
+Why this ISO: it is Microsoft's legal, free evaluation copy for testing and does not require a product key (unlike regular consumer Windows 11 ISOs).
 
-> **Check:** the file is in `Downloads` and is about 5–6 GB.
+> **Check:** the Windows `.iso` file is in `Downloads` (~5–6 GB).
 
 ---
 
-## 2. Create a network the two VMs share
+## 2. Create a shared virtual network
 
-### Step 4. Create the NatNetwork
-By default every VM gets its own private NAT, which gives it internet but hides it from other VMs. We need one shared network.
+### Step 4. Create `NatNetwork`
+By default, VirtualBox puts each VM on an isolated NAT where it has internet access but cannot see other VMs. We need one shared network.
 
-1. In VirtualBox click **Файл** (File) → **Инструменты** (Tools) → **Менеджер сети** (Network Manager).
-2. Open the tab **Сети NAT** (NAT Networks) and click **Создать** (Create).
-3. Name it `NatNetwork`. Leave the address range as it is (normally `10.0.2.0/24`) and make sure **DHCP** is switched on. Click **Применить** (Apply).
+1. In VirtualBox, click **Файл** (File) → **Инструменты** (Tools) → **Менеджер сети** (Network Manager).
+2. Open the **Сети NAT** (NAT Networks) tab and click **Создать** (Create).
+3. Name it `NatNetwork`, keep the default IPv4 prefix (`10.0.2.0/24`), and ensure **DHCP сервер** (DHCP) is enabled.
+4. *(Optional, recommended)* Under **Проброс портов** (Port Forwarding) → **IPv4**, add a TCP rule forwarding host port `2222` to guest `10.0.2.15` port `22` so you can connect to Ubuntu over SSH from Windows Terminal, then click **Применить** (Apply).
 
 ![](evidence/00-create-nat-network.png)
 
-Why NAT Network and not Bridged: the Innotech teaching network filters by MAC address. A Bridged adapter gives the VM its own MAC, which the network rejects. Behind a NAT Network the VMs go out through the laptop's address, so there is nothing to reject, and they can still reach each other. If you build this at home and need to reach the VM from another computer, Bridged is the alternative, but then you must deal with filtering yourself.
+Why NAT Network instead of Bridged: the Innotech network filters unknown MAC addresses and blocks Bridged VMs. Behind a NAT Network, both VMs share the host's external address (so nothing is blocked) while remaining able to ping each other on `10.0.2.0/24`.
 
-> **Check:** `NatNetwork` appears in the list.
+> **Check:** `NatNetwork` appears in the NAT Networks list with `10.0.2.0/24` and DHCP enabled.
 
 ---
 
 ## Part A. The Ubuntu (Linux) VM
 
-### Step 5. Open the New Machine wizard
-1. Click **Создать** (New) in the toolbar.
+### Step 5. Create the VM in the wizard
+1. Click **Создать** (New) in the main toolbar.
 2. **Имя ВМ** (Name): `lab01-ubuntu`.
-3. **Образ ISO** (ISO Image): open the list, choose **Другой…** (Other…) and select the Ubuntu ISO.
-4. Make sure **ОС** (Type) = `Linux`, **Дистрибутив ОС** (Subtype) = `Ubuntu`, **Версия ОС** (Version) = `Ubuntu (64-bit)`. VirtualBox fills these in itself.
+3. **Образ ISO** (ISO Image): select **Другой…** (Other…) and pick `ubuntu-26.04.1-live-server-amd64.iso`.
+4. Confirm **ОС** (Type) = `Linux` and **Дистрибутив ОС** (Subtype) = `Ubuntu`. VirtualBox will auto-select the closest 64-bit Ubuntu version (e.g. `Ubuntu 25.04 (Plucky Puffin) (64-bit)` or `Ubuntu (64-bit)`) — leave that as is.
 5. Leave **Осуществить установку автоматически** (Proceed with Unattended Installation) **unticked**.
 
 ![](evidence/01-new-vm-wizard.png)
 
-Why unticked: otherwise VirtualBox installs Ubuntu by itself with its own username and settings, and this guide would no longer match what you see.
+Why unticked: unattended installation auto-fills hidden usernames and passwords and skips the installer screens shown in this guide.
 
-> **Check:** the name is exactly `lab01-ubuntu`, the version says Ubuntu (64-bit) and the unattended box is empty. Do not click **Готово** (Finish) yet.
+> **Check:** Name is `lab01-ubuntu`, OS is Linux / Ubuntu (64-bit), and unattended installation is unticked. Do not click **Готово** (Finish) yet.
 
-### Step 6. Memory and processors
-Click **Укажите виртуальное оборудование** (Specify virtual hardware).
+### Step 6. Configure memory and processors
+Expand **Укажите виртуальное оборудование** (Specify virtual hardware):
 * **Основная память** (Base Memory): `2048 MB`.
-* **Процессоры** (Processors): `2`.
-* Leave **Включить EFI** (Enable EFI) **unticked** for Linux.
+* **Число ЦПУ** (Processors): `2`.
+* Leave **Использовать EFI** (Enable EFI) **unticked** (Ubuntu Server boots with standard BIOS here).
 
 ![](evidence/01b-ubuntu-cpu-ram.png)
 
-Why 2048 MB and 2 CPUs: the default (1024 MB, 1 CPU) is slow for a developer. Ubuntu Server runs comfortably on 2 GB. The laptop has 16 GB, so Ubuntu 2 GB + Windows 4 GB leaves 10 GB for the laptop itself. More than 2 GB for Linux would start squeezing the host when both VMs run.
+Why 2048 MB and 2 CPUs: VirtualBox defaults to 1024 MB and 1 CPU, which is slow for package installs. 2 GB runs Ubuntu Server smoothly while leaving 10 GB RAM free for the host when Windows (4 GB) is also running.
 
-> **Check:** Memory shows 2048 MB and Processors shows 2.
+> **Check:** Memory shows `2048 МБ` and Processors shows `2`.
 
-### Step 7. Virtual disk
-Click **Укажите виртуальный жёсткий диск** (Specify virtual hard disk).
-* Choose **Создать виртуальный жёсткий диск сейчас** (Create a Virtual Hard Disk Now) and set the size to `25 GB`.
+### Step 7. Configure the virtual disk
+Expand **Укажите виртуальный жёсткий диск** (Specify virtual hard disk):
+* Select **Создать новый виртуальный жёсткий диск** (Create a Virtual Hard Disk Now) and set **Размер диска** (Size) to `25,00 ГБ` (25 GB).
 * Leave **Выделить место в полном размере** (Pre-allocate Full Size) **unticked**.
 * Click **Готово** (Finish).
 
 ![](evidence/01c-ubuntu-disk.png)
 
-Why 25 GB, dynamic: a dynamic disk takes space on the laptop's SSD only as it fills. A fresh Ubuntu Server uses about 5 GB, so the 25 GB limit costs you 5 GB, not 25. Pre-allocation would take the full 25 GB at once and make the build slower for no benefit here.
+Why 25 GB dynamic: a dynamically allocated disk only uses space on your laptop's SSD as files are written inside the VM (`5,16 ГБ` initially instead of locking all 25 GB immediately).
 
-To confirm: select the VM, **Настроить** (Settings) → **Носители** (Storage), click `lab01-ubuntu.vdi`.
+To verify: select `lab01-ubuntu` → **Настроить** (Settings) → **Носители** (Storage) → click `lab01-ubuntu.vdi`.
 
 ![](evidence/02-disk-settings.png)
 
-> **Check:** the panel on the right shows virtual size 25 GB and type "dynamically allocated".
+> **Check:** the right-hand panel shows **Вирт. размер** `25,00 ГБ` and **Атрибуты** `Динамически расширяющийся` (Dynamically allocated).
 
-### Step 8. Attach the VM to the NatNetwork
-1. Select `lab01-ubuntu`, click **Настроить** (Settings) → **Сеть** (Network) → **Адаптер 1** (Adapter 1).
+### Step 8. Attach Ubuntu to `NatNetwork`
+1. Select `lab01-ubuntu` → **Настроить** (Settings) → **Сеть** (Network) → **Адаптер 1** (Adapter 1).
 2. **Тип подключения** (Attached to): `Сеть NAT` (NAT Network).
 3. **Имя** (Name): `NatNetwork`. Click **OK**.
 
 ![](evidence/03-network-adapter.png)
 
-Why now: the Ubuntu installer asks for a network address at the start. If the adapter is already on NatNetwork, it gets one automatically.
+Why before installation: the Ubuntu installer automatically fetches an IP address (`10.0.2.x`) from `NatNetwork` during setup.
 
-> **Check:** the type says `Сеть NAT` (not just `NAT`) and the name says `NatNetwork`.
+> **Check:** Attached to says `Сеть NAT` (not plain `NAT`) and Name says `NatNetwork`.
 
 ### Step 9. Install Ubuntu Server
-Click **Запустить** (Start). A window opens. Click inside it, then use the keyboard (the mouse does not work in the installer). Press **Enter** to accept the highlighted choice, and use the arrow keys to move.
+Click **Запустить** (Start). Click inside the black VM window and navigate with the keyboard (**Arrow keys**, **Space** to toggle checkboxes, **Enter** to confirm).
 
-1. **GRUB menu:** press Enter on **Try or Install Ubuntu Server**.
-2. **Language:** English.
-3. **Keyboard:** English (US) → Done.
-4. **Type of install:** *Ubuntu Server* (not "minimized").
-5. **Network:** you should see an address like `10.0.2.x` → Done. If no address is shown, stop: see Troubleshooting, problem 3.
-6. **Proxy:** leave empty → Done.
-7. **Mirror:** leave the default → Done.
-8. **Storage:** *Use an entire disk* → Done → Done → **Continue**. This formats only the virtual 25 GB disk. Your laptop's real disk is not touched.
-9. **Profile:** your name; server name `lab01-ubuntu`; a username of your choice; a password you will remember.
-10. **Ubuntu Pro:** *Skip*.
-11. **SSH:** tick **Install OpenSSH server** (press Space) → Done. SSH lets you copy text out of the VM later.
-12. **Featured snaps:** select nothing → Done.
-13. Wait 5–10 minutes. When **Reboot Now** appears at the bottom, press Enter.
-14. If the screen says "Please remove the installation medium, then press ENTER", press Enter. If the installer menu comes back instead, switch the VM off, open **Настроить** → **Носители** (Storage), remove the ISO from the optical drive and start again.
+1. **GRUB menu:** press **Enter** on *Try or Install Ubuntu Server*.
+2. **Language:** `English`.
+3. **Keyboard:** `English (US)` → **Done**.
+4. **Type of install:** `Ubuntu Server` (leave minimized unticked) → **Done**.
+5. **Network connections:** wait until `enp0s3` shows an IPv4 address like `10.0.2.x/24` → **Done**.
+6. **Proxy address:** leave blank → **Done**.
+7. **Mirror address:** keep default → **Done**.
+8. **Guided storage configuration:** select **Use an entire disk** → **Done** → **Done** → **Continue**. (This only formats the virtual 25 GB file, never your real laptop drive.)
+9. **Profile setup:** enter your name, server name `lab01-ubuntu`, a username, and a password you will remember → **Done**.
+10. **Ubuntu Pro:** select *Skip for now* → **Continue**.
+11. **SSH Setup:** press **Space** to tick **Install OpenSSH server** → **Done**.
+12. **Featured Server Snaps:** select nothing → **Done**.
+13. Wait 5–10 minutes until **Reboot Now** appears at the bottom, then press **Enter**.
+14. If prompted *"Please remove the installation medium, then press ENTER"*, press **Enter**.
 
-Why these answers: they are the installer's defaults except for the name, the SSH server and the disk choice. Defaults are used on purpose so the next person does not have to decide anything.
+Why these choices: OpenSSH allows remote terminal connections and clean text copying later, while skipping snaps keeps installation fast.
 
-> **Check:** after the reboot you see `lab01-ubuntu login:`.
+> **Check:** after reboot, the console displays `lab01-ubuntu login:`.
 
-### Step 10. Check that Ubuntu works
-Log in with your username and password (the password is invisible while you type, this is normal). Run:
+### Step 10. Verify Ubuntu and check disk allocation
+Log in with your username and password (characters are hidden while typing). Run:
 
-```
+```bash
 uname -a
 lsb_release -a
+hostname
+df -h /
 ip addr
+
 ```
 
-* `uname -a` must start with `Linux lab01-ubuntu`.
-* `lsb_release -a` must say `Ubuntu 26.04.1 LTS`.
-* `ip addr`: under `enp0s3` find a line `inet 10.0.2.x/24`. **Write that number down**, you need it in Step 18.
+* `uname -a` starts with `Linux lab01-ubuntu`.
+* `lsb_release -a` shows `Ubuntu 26.04.1 LTS`.
+* `ip addr` shows `inet 10.0.2.x/24` under `enp0s3` (in this build: `10.0.2.15`). **Write this IP down** for Step 18.
+* Note on `df -h /`: Ubuntu's default LVM layout allocates `12G` of the 25 GB disk initially (`5.6G` used). If the developer ever needs the full 25 GB, run:
+```bash
+sudo lvextend -r -l +100%FREE /dev/ubuntu-vg/ubuntu-lv
 
-> **Check:** all three commands print what is described above. The same output is saved in `evidence/04-guest-uname.txt`.
+```
+
+
+*(Be sure to include the space between `+100%FREE` and `/dev/...`.)*
+
+> **Check:** all commands succeed without errors (unedited output is saved in `evidence/04-guest-uname.txt`).
 
 ---
 
 ## Part B. The Windows 11 VM
 
-### Step 11. Open the wizard for Windows
+### Step 11. Create the Windows VM in the wizard
+
 1. Click **Создать** (New).
-2. **Имя ВМ**: `lab02-windows`.
-3. **Образ ISO**: **Другой…** and select the Windows ISO.
-4. The **Редакция ОС** (Edition) field is filled in by VirtualBox itself and is greyed out: `Windows 11 Enterprise LTSC Evaluation`. Do not change it.
-5. Check that **ОС** = `Microsoft Windows`, **Версия ОС** = `Windows 11 (64-bit)`.
+2. **Имя ВМ** (Name): `lab02-windows`.
+3. **Образ ISO** (ISO Image): **Другой…** (Other…) and select the Windows 11 Evaluation ISO.
+4. **Редакция ОС** (Edition) auto-fills as `Windows 11 Enterprise LTSC Evaluation`.
+5. Confirm **ОС** = `Microsoft Windows`, **Версия ОС** = `Windows 11 (64-bit)`.
 6. Leave **Осуществить установку автоматически** (Proceed with Unattended Installation) **unticked**.
 
-![](evidence/07a-windows-wizard.png)
+Why unticked: avoids auto-creating hidden accounts and ensures you can configure a local user cleanly.
 
-Why this edition: the Evaluation ISO contains only this one edition, so VirtualBox picks it itself and there is nothing to choose. It is free and needs no key, but works for 90 days.
+> **Check:** Name is `lab02-windows`, Version is `Windows 11 (64-bit)`, unattended box is unticked. Do not click Finish yet.
 
-> **Check:** name `lab02-windows`, version Windows 11 (64-bit), unattended box empty. Do not click Finish yet.
+### Step 12. Configure memory, processors, and disk
 
-### Step 12. Memory, processors, disk
-Click **Укажите виртуальное оборудование** (Specify virtual hardware) and set:
+1. Expand **Укажите виртуальное оборудование** (Specify virtual hardware):
 * **Основная память** (Base Memory): `4096 MB`.
-* **Процессоры** (Processors): `2`.
-* **Включить EFI** (Enable EFI): **ticked**.
+* **Число ЦПУ** (Processors): `2`.
+* **Использовать EFI** (Enable EFI): **ticked**.
 
-Then click **Укажите виртуальный жёсткий диск** (Specify virtual hard disk):
-* Size `64 GB`, **Выделить место в полном размере** (Pre-allocate Full Size) **unticked**.
+
+2. Expand **Укажите виртуальный жёсткий диск** (Specify virtual hard disk):
+* Set size to `64 GB` and leave **Выделить место в полном размере** (Pre-allocate Full Size) **unticked**.
 * Click **Готово** (Finish).
 
-Why: 4 GB RAM, 2 CPUs and 64 GB disk are Microsoft's official minimum for Windows 11; the installer refuses to continue below them. Dynamic allocation again means the laptop gives up only the space Windows actually uses (about 20–25 GB at first).
 
-> **Check:** `lab02-windows` appears in the list on the left.
 
-### Step 13. Turn on TPM and Secure Boot (critical)
-Windows 11 refuses to install without a TPM 2.0 chip and UEFI. A VM has no real chip, so VirtualBox provides a virtual one. Do this **before** the first start.
+Why: 4 GB RAM, 2 CPUs, and 64 GB storage are Microsoft's official minimum requirements for Windows 11. Dynamic storage keeps initial SSD usage around 22 GB.
 
-1. Select `lab02-windows` → **Настроить** (Settings) → **Система** (System) → tab **Материнская плата** (Motherboard).
-2. **Включить EFI** (Enable EFI): ticked.
-3. **Включить безопасную загрузку** (Enable Secure Boot): ticked (this appears once EFI is on).
-4. **Модуль TPM** (TPM): choose `v2.0`.
+> **Check:** `lab02-windows` appears in the left sidebar.
 
-![](evidence/07-windows-vm-settings.png)
+### Step 13. Enable EFI, Secure Boot, and TPM 2.0 (critical)
 
-Why: skipping this is the most common reason the Windows installer stops with "This PC can't run Windows 11".
+Windows 11 refuses to install without UEFI, Secure Boot, and a TPM 2.0 chip. Configure this **before** starting the VM:
 
-> **Check:** the settings above are visible exactly as in the screenshot. If the TPM list is missing, your VirtualBox is older than 7.0: update it (Step 1).
+1. Select `lab02-windows` → **Настроить** (Settings) → **Система** (System) → **Материнская плата** (Motherboard).
+2. **UEFI** (Enable EFI): **ticked**.
+3. **Безопасная загрузка** (Enable Secure Boot): **ticked**.
+4. **Версия TPM** (TPM): select `2.0`. Click **OK**.
 
-### Step 14. Attach Windows to the NatNetwork
-**Настроить** → **Сеть** → **Адаптер 1**: **Тип подключения** = `Сеть NAT`, **Имя** = `NatNetwork`. Click **OK**.
+Why: omitting any of these three causes Windows Setup to abort with *"This PC can't run Windows 11"*.
 
-![](evidence/07b-windows-network.png)
+> **Check:** UEFI, Безопасная загрузка, and Версия TPM `2.0` match the screenshot above.
 
-Why: the same network as Ubuntu is what lets the two machines talk. See Step 4.
+### Step 14. Attach Windows to `NatNetwork`
 
-> **Check:** same as in Step 8.
+Select `lab02-windows` → **Настроить** (Settings) → **Сеть** (Network) → **Адаптер 1** (Adapter 1): set **Тип подключения** (Attached to) = `Сеть NAT` (NAT Network) and **Имя** (Name) = `NatNetwork`. Click **OK**.
 
-### Step 15. Install Windows
-1. Click **Запустить** (Start). If you see **Press any key to boot from CD or DVD**, click inside the window and press any key **immediately** (the prompt disappears after a few seconds; if you miss it, use **Машина** → **Перезагрузить** and try again).
-2. Language, time and keyboard: leave as is → **Next** → **Install now**.
-3. If a **product key** screen appears, click **I don't have a product key**. The Evaluation version does not need one, and it may skip this screen.
-4. If you are asked to choose an operating system, choose the only one offered (Windows 11 Enterprise Evaluation). Accept the licence → Next.
-5. **Installation type:** **Custom: Install Windows only (advanced)**.
-6. Select the single drive (Drive 0, 64 GB, unallocated) → Next. The VM restarts several times by itself; this takes 10–20 minutes. When "Press any key…" appears again, do **not** press anything, so that it boots from the new disk.
-7. **First-run setup:** choose your region and keyboard; give the computer the name `lab02-windows` if asked.
-8. **Sign-in:** if the installer insists on a Microsoft account, press **Shift+F10**, type `start ms-cxh:localonly` and press Enter, then enter a user name and password. (If that does not work, use the "Sign-in options" link or sign in with a Microsoft account.)
-9. Answer the privacy questions with **Decline/No** and **Accept**.
+Why: places Windows on the exact same virtual subnet (`10.0.2.0/24`) as `lab01-ubuntu`.
 
-![](evidence/07c-windows-installer.png)
+> **Check:** Adapter 1 shows `Сеть NAT` and `NatNetwork`.
 
-> **Check:** you see the Windows desktop and the Start button.
+### Step 15. Install Windows 11
+
+1. Click **Запустить** (Start). As soon as **Press any key to boot from CD or DVD** appears, click inside the VM window and press **Enter** or **Space** immediately.
+2. Confirm Language/Keyboard → **Next** → **Install now**.
+3. If prompted for a product key, click **I don't have a product key** (or select **Windows 11 Enterprise Evaluation** if asked for an edition). Accept the licence terms → **Next**.
+4. Choose **Custom: Install Windows only (advanced)**.
+5. Select **Drive 0 Unallocated Space** (64 GB) → **Next**. Windows will copy files and reboot several times (10–20 minutes). Do **not** press a key at *"Press any key…"* on subsequent reboots.
+6. Complete the out-of-box setup (region, keyboard, device name `lab02-windows`).
+7. When prompted to sign in with a Microsoft account, press **Shift + F10**, type `start ms-cxh:localonly` (or use *Sign-in options → Domain join instead*), and create a local username and password. Decline optional telemetry/privacy toggles.
+
+> **Check:** you reach the Windows 11 desktop with the Start menu visible and the Evaluation edition label in the bottom-right corner.
 
 ---
 
-## Part C. Make the two machines reach each other and the internet
+## Part C. Connect both guests and verify networking
 
-### Step 16. Check the internet from Windows
-In Windows, click Start, type `PowerShell`, press Enter. Run:
+### Step 16. Check IP address and internet on Windows
 
-```
+Open **Start**, type `PowerShell`, and press **Enter**. Run:
+
+```powershell
 ipconfig
 ping 1.1.1.1
-```
-
-* `ipconfig`: **IPv4 Address** should be `10.0.2.x`. **Write it down.**
-* `ping 1.1.1.1`: should say `Received = 4, Lost = 0 (0% loss)`.
-
-Why `1.1.1.1` and not a website name: pinging an address tests the network only. A website name also needs the name service (DNS), so if it fails you would not know which of the two is broken.
-
-> **Check:** 0% loss. If not, Troubleshooting, problem 3.
-
-### Step 17. Allow ping into Windows
-Windows blocks incoming ping by default, so Ubuntu would show 100% loss when it tries to reach Windows. In PowerShell, **run as administrator** (right-click PowerShell → *Run as administrator*) and paste:
+ping google.com
 
 ```
+
+* Under Ethernet adapter, note the **IPv4 Address** (`10.0.2.x`; in this build: `10.0.2.3`). **Write it down.**
+* Both pings must show `Lost = 0 (0% loss)`.
+
+Why two pings: `1.1.1.1` tests raw IP routing, while `google.com` verifies that DNS name resolution also works for the developer.
+
+> **Check:** `0% loss` on both commands.
+
+### Step 17. Allow incoming ping on Windows Firewall
+
+Windows blocks incoming ping (ICMPv4) by default, which causes Linux-to-Windows pings to time out. Open **PowerShell as Administrator** (right-click Start → *Terminal (Admin)* or search PowerShell → *Run as administrator*) and run:
+
+```powershell
 New-NetFirewallRule -DisplayName "Allow Ping ICMPv4" -Protocol ICMPv4 -IcmpType 8 -Direction Inbound -Action Allow
+
 ```
 
-Why this rule and not switching the firewall off: it opens only ping, and nothing else. Switching the firewall off removes all protection.
+Why this rule instead of turning off the firewall: it opens only ICMP ping requests while keeping all other firewall protections active.
 
-> **Check:** PowerShell prints a table of the new rule and no red text.
+> **Check:** PowerShell outputs the new rule details with no red error text.
 
-### Step 18. Ping in both directions
-**On Ubuntu** (use the Windows address from Step 16):
-```
-ping -c 4 <Windows address>
+### Step 18. Verify bidirectional ping and internet from both guests
+
+1. **On Ubuntu** (replace `<Windows-IP>` with `10.0.2.3` or your Windows IP from Step 16):
+```bash
+ping -c 4 <Windows-IP>
 ping -c 4 1.1.1.1
-```
-**On Windows** (use the Ubuntu address from Step 10):
-```
-ping <Ubuntu address>
-```
-Each one must end with `0% packet loss` (Ubuntu) or `0% loss` (Windows).
 
-> **Check:** all three succeed. Example output is in `evidence/05-ping-between-guests.txt`. Use the file to see what "good" looks like, not as a substitute for doing the test.
+```
+
+
+2. **On Windows** (replace `<Ubuntu-IP>` with `10.0.2.15` or your Ubuntu IP from Step 10):
+```powershell
+ping <Ubuntu-IP>
+
+```
+
+
+
+> **Check:** every ping returns replies with `0% packet loss` (unedited logs from both machines are saved in `evidence/05-ping-between-guests.txt`).
 
 ---
 
-## Part D. Save a clean state and go back to it
+## Part D. Save a clean snapshot and test rollback
 
-### Step 19. Take a snapshot of each VM
-A snapshot freezes the machine exactly as it is now. The developer can break anything afterwards and return to this point.
+### Step 19. Take the `clean-install` snapshot on both VMs
 
-1. Shut each VM down properly (Ubuntu: `sudo poweroff`; Windows: Start → Power → Shut down).
-2. In VirtualBox select the VM, then click the **Снимки** (Snapshots) icon next to its name.
-3. Click **Сделать** (Take).
-4. Name it `clean-install` and click **OK**. Repeat for the other VM.
+1. Shut down both VMs cleanly:
+* Ubuntu: run `sudo poweroff`
+* Windows: **Start → Power → Shut down**
 
-![](evidence/06-snapshot-list.png)
-![](evidence/06b-snapshot-list-windows.png)
 
-Why shut down first: a snapshot of a powered-off machine is smaller, quicker and cannot catch a half-written file.
+2. In VirtualBox, select `lab01-ubuntu`, click the menu icon next to its name → **Снимки** (Snapshots).
+3. Click **Сделать** (Take), name it `clean-install`, and click **OK**.
+4. Repeat Steps 2–3 for `lab02-windows`.
 
-> **Check:** each VM shows `clean-install` in its snapshot list.
+Why shut down first: snapshots taken while powered off are smaller, faster, and avoid capturing half-written disk buffers.
 
----
+> **Check:** both VMs list `clean-install` under Snapshots.
 
-## Rollback: how to undo the developer's damage
+### Step 20. Test and use Rollback (how to undo damage)
 
-1. Shut the VM down (or **Машина** → **Закрыть** → **Выключить**).
-2. Select the VM → **Снимки**.
-3. Click `clean-install` → **Восстановить** (Restore).
-4. When asked to save the current state, choose **No**/**Не сохранять** if you do not need it, and confirm.
+Whenever the developer breaks a VM or wants a fresh start, restore the snapshot:
+
+1. To test rollback safely, boot `lab01-ubuntu`, create a dummy test file (`touch ~/broken-test.txt`), and shut the VM down (`sudo poweroff`).
+2. In VirtualBox, select the VM → **Снимки** (Snapshots).
+3. Select `clean-install` and click **Восстановить** (Restore).
+4. Untick *"Создать снимок текущего состояния машины"* (Create a snapshot of the current machine state) so you do not save the broken state, then click **Восстановить** (Restore).
 5. Start the VM.
 
-This normally takes a few seconds, not a rebuild. **Warning:** everything done since the snapshot is lost, including the developer's files. Tell them to keep anything important outside the VM.
-
-> **Check:** the VM starts in the clean state, and files created after the snapshot are gone.
+> **Check:** the VM boots back into its clean state in seconds, and `~/broken-test.txt` (or any damage made after the snapshot) is completely gone. **Note:** remind the developer to store any work they want to keep outside the VM before rolling back.
 
 ---
 
 ## Troubleshooting
 
-| # | What you see | Likely cause | What to do |
-|---|---|---|---|
-| 1 | The VM does not start; message mentions `VT-x`, `AMD-V` or `VERR_VMX_NO_VMX` | Virtualisation is off in the BIOS (or Windows Hyper-V is using it) | Restart the laptop, open the BIOS (usually F2, F10 or Del at start), switch on *Intel Virtualization Technology* / *SVM Mode*, save. |
-| 2 | Windows installer says "This PC can't run Windows 11" | TPM/EFI not enabled, or less than 4 GB RAM / 64 GB disk / 2 CPUs | Shut the VM down. Redo Step 13 and check Step 12. |
-| 3 | Ubuntu or Windows has no internet; Ubuntu installer shows no IP address | Adapter not on NatNetwork, or NatNetwork has no DHCP | Check Step 8 / 14. In Network Manager, open `NatNetwork` and make sure **DHCP** is ticked. |
-| 4 | Ubuntu can ping Windows with 100% loss | Windows firewall blocks ping | Repeat Step 17 as administrator. |
-| 5 | Both VMs have `10.0.2.15` and cannot see each other | They are on plain `NAT`, not on `NAT Network` | Set the adapter type to `Сеть NAT` (Step 8 / 14). |
-| 6 | The Ubuntu installer starts again after "Reboot now" | The ISO is still inserted | Step 9, last point. |
-| 7 | Windows boots to a black screen with a "Press any key" line that disappears | The key press was missed | **Машина** → **Перезагрузить** and press a key in time (Step 15). |
-| 8 | Ubuntu "No space left on device" | The 25 GB virtual disk is full, or the laptop's SSD is full | Check free space on the laptop first; free up space or ask for a larger virtual disk. |
+| # | Symptom | Cause | Fix |
+| --- | --- | --- | --- |
+| 1 | VM fails to start with `VERR_VMX_NO_VMX` or `VT-x / AMD-V` error | Hardware virtualisation is disabled in BIOS/UEFI | Reboot the laptop, open BIOS (F2/F10/Del), enable *Intel VT-x* or *AMD SVM Mode*, save and exit. |
+| 2 | Windows Setup says *"This PC can't run Windows 11"* | EFI, Secure Boot, TPM 2.0, 4 GB RAM, or 64 GB disk is missing | Power off the VM and repeat Steps 12 and 13. |
+| 3 | Windows boots to a small black 640×480 screen and freezes | Virtual graphics controller mismatch | Power off the VM → **Настроить** (Settings) → **Дисплей** (Display) → set **Графический контроллер** (Graphics Controller) to `VMSVGA` → start again. |
+| 4 | VM shows *Aborted* or disk shows *Inaccessible* (`VERR_FILE_NOT_FOUND`) | The VM or its files were removed while the VM was still running | Always power off a VM before removing it. Right-click the broken entry → **Удалить** (Remove) and recreate it from Step 5 or Step 11. |
+| 5 | Both VMs get the exact same IP (`10.0.2.15`) and cannot ping each other | Adapters are set to plain `NAT` instead of `Сеть NAT` (NAT Network) | Change Adapter 1 on both VMs to `Сеть NAT` → `NatNetwork` (Steps 8 and 14) and reboot both guests. |
+| 6 | Ubuntu pings Windows with 100% packet loss, even on `NatNetwork` | Windows Firewall is blocking incoming ICMPv4 Echo | Run the `New-NetFirewallRule` command in PowerShell as Administrator (Step 17). |
+| 7 | Ubuntu installer restarts from the beginning after *Reboot Now* | Virtual ISO image is still mounted in the optical drive | Power off the VM → **Настроить** (Settings) → **Носители** (Storage) → remove the `.iso` from the optical drive → start again. |
+| 8 | Windows Setup skips *"Press any key to boot from CD or DVD"* | Key was not pressed within the 3-second prompt | Click **Машина** (Machine) → **Перезагрузить** (Reset), immediately click inside the window, and press **Space**. |
 
----
-
-## Summary of the settings this guide sets
-
-Where VirtualBox already proposes the same value, it is still listed, so that the build is the same every time.
-
-| Setting | Value in this guide | Why |
-|---|---|---|
-| Network (both VMs) | NAT Network `NatNetwork` instead of plain NAT | VMs must see each other; the campus network filters Bridged adapters (Step 4) |
-| Unattended installation (both VMs) | Unticked | The guide matches what is on screen (Steps 5, 11) |
-| Ubuntu memory | 2048 MB | Smooth for a developer; leaves 10 GB for the laptop (Step 6) |
-| Ubuntu CPUs | 2 | Responsive package installs |
-| Ubuntu disk | 25 GB, dynamic | Uses about 5 GB at first (Step 7) |
-| Windows memory | 4096 MB | Windows 11 minimum (Step 12) |
-| Windows CPUs | 2 | Windows 11 minimum |
-| Windows disk | 64 GB, dynamic | Windows 11 minimum; no need for more on a test machine |
-| Windows EFI, Secure Boot, TPM | On, v2.0 | Windows 11 will not install without them (Step 13) |
-| Windows firewall | Ping allowed in | So Ubuntu can reach Windows (Step 17) |
