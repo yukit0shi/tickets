@@ -33,7 +33,7 @@ Save all files into your `Downloads` folder.
 2. Under **VirtualBox Platform Packages**, click **Windows hosts** (this guide uses VirtualBox `7.2.22`) and run the downloaded `.exe` installer.
 3. Click **Next** on every screen and **Install** at the end. A warning that your network connection will briefly reset is normal — click **Yes**.
 
-![](evidence/00a-virtualbox-download.png)
+![VirtualBox download page](evidence/00a-virtualbox-download.png)
 
 Why: VirtualBox is the free (GPLv3) hypervisor that runs the virtual computers inside Windows.
 
@@ -65,9 +65,13 @@ By default, VirtualBox puts each VM on an isolated NAT where it has internet acc
 1. In VirtualBox, click **Файл** (File) → **Инструменты** (Tools) → **Менеджер сети** (Network Manager).
 2. Open the **Сети NAT** (NAT Networks) tab and click **Создать** (Create).
 3. Name it `NatNetwork`, keep the default IPv4 prefix (`10.0.2.0/24`), and ensure **DHCP сервер** (DHCP) is enabled.
-4. *(Optional, recommended)* Under **Проброс портов** (Port Forwarding) → **IPv4**, add a TCP rule forwarding host port `2222` to guest `10.0.2.15` port `22` so you can connect to Ubuntu over SSH from Windows Terminal, then click **Применить** (Apply).
+4. *(Optional, recommended)* Under **Проброс портов** (Port Forwarding) → **IPv4**, add a TCP rule forwarding host port `2222` to guest `10.0.2.15` port `22`, then click **Применить** (Apply). Make sure the Ubuntu IP you get in Step 10 matches the guest IP in this rule. Once Ubuntu is installed, you can connect from Windows Terminal with:
 
-![](evidence/00-create-nat-network.png)
+```powershell
+ssh -p 2222 <username>@127.0.0.1
+```
+
+![NatNetwork with port forwarding](evidence/00-create-nat-network.png)
 
 Why NAT Network instead of Bridged: the Innotech network filters unknown MAC addresses and blocks Bridged VMs. Behind a NAT Network, both VMs share the host's external address (so nothing is blocked) while remaining able to ping each other on `10.0.2.0/24`.
 
@@ -84,7 +88,7 @@ Why NAT Network instead of Bridged: the Innotech network filters unknown MAC add
 4. Confirm **ОС** (Type) = `Linux` and **Дистрибутив ОС** (Subtype) = `Ubuntu`. VirtualBox will auto-select the closest 64-bit Ubuntu version (e.g. `Ubuntu 25.04 (Plucky Puffin) (64-bit)` or `Ubuntu (64-bit)`) — leave that as is.
 5. Leave **Осуществить установку автоматически** (Proceed with Unattended Installation) **unticked**.
 
-![](evidence/01-new-vm-wizard.png)
+![New VM wizard, Ubuntu](evidence/01-new-vm-wizard.png)
 
 Why unticked: unattended installation auto-fills hidden usernames and passwords and skips the installer screens shown in this guide.
 
@@ -96,7 +100,7 @@ Expand **Укажите виртуальное оборудование** (Speci
 * **Число ЦПУ** (Processors): `2`.
 * Leave **Использовать EFI** (Enable EFI) **unticked** (Ubuntu Server boots with standard BIOS here).
 
-![](evidence/01b-ubuntu-cpu-ram.png)
+![Ubuntu memory and CPUs](evidence/01b-ubuntu-cpu-ram.png)
 
 Why 2048 MB and 2 CPUs: VirtualBox defaults to 1024 MB and 1 CPU, which is slow for package installs. 2 GB runs Ubuntu Server smoothly while leaving 10 GB RAM free for the host when Windows (4 GB) is also running.
 
@@ -108,13 +112,13 @@ Expand **Укажите виртуальный жёсткий диск** (Specif
 * Leave **Выделить место в полном размере** (Pre-allocate Full Size) **unticked**.
 * Click **Готово** (Finish).
 
-![](evidence/01c-ubuntu-disk.png)
+![Ubuntu virtual disk](evidence/01c-ubuntu-disk.png)
 
 Why 25 GB dynamic: a dynamically allocated disk only uses space on your laptop's SSD as files are written inside the VM (`5,16 ГБ` initially instead of locking all 25 GB immediately).
 
 To verify: select `lab01-ubuntu` → **Настроить** (Settings) → **Носители** (Storage) → click `lab01-ubuntu.vdi`.
 
-![](evidence/02-disk-settings.png)
+![Disk properties](evidence/02-disk-settings.png)
 
 > **Check:** the right-hand panel shows **Вирт. размер** `25,00 ГБ` and **Атрибуты** `Динамически расширяющийся` (Dynamically allocated).
 
@@ -123,7 +127,7 @@ To verify: select `lab01-ubuntu` → **Настроить** (Settings) → **Н�
 2. **Тип подключения** (Attached to): `Сеть NAT` (NAT Network).
 3. **Имя** (Name): `NatNetwork`. Click **OK**.
 
-![](evidence/03-network-adapter.png)
+![Ubuntu network adapter](evidence/03-network-adapter.png)
 
 Why before installation: the Ubuntu installer automatically fetches an IP address (`10.0.2.x`) from `NatNetwork` during setup.
 
@@ -152,7 +156,7 @@ Why these choices: OpenSSH allows remote terminal connections and clean text cop
 > **Check:** after reboot, the console displays `lab01-ubuntu login:`.
 
 ### Step 10. Verify Ubuntu and check disk allocation
-Log in with your username and password (characters are hidden while typing). Run:
+Log in with your username and password (characters are hidden while typing), or connect via SSH from Step 4. Run:
 
 ```bash
 uname -a
@@ -160,29 +164,24 @@ lsb_release -a
 hostname
 df -h /
 ip addr
-
 ```
 
 * `uname -a` starts with `Linux lab01-ubuntu`.
 * `lsb_release -a` shows `Ubuntu 26.04.1 LTS`.
-* `ip addr` shows `inet 10.0.2.x/24` under `enp0s3` (in this build: `10.0.2.15`). **Write this IP down** for Step 18.
-* Note on `df -h /`: Ubuntu's default LVM layout allocates `12G` of the 25 GB disk initially (`5.6G` used). If the developer ever needs the full 25 GB, run:
+* `ip addr` shows `inet 10.0.2.x/24` under `enp0s3` (in this build: `10.0.2.15`, recorded in `evidence/05-ping-between-guests.txt`). **Write this IP down** for Step 18.
+* Note on `df -h /`: Ubuntu's default LVM layout allocates `12G` of the 25 GB disk initially (`5.6G` used). If the developer ever needs the full 25 GB, run the command below (keep the space between `+100%FREE` and `/dev/...`):
+
 ```bash
 sudo lvextend -r -l +100%FREE /dev/ubuntu-vg/ubuntu-lv
-
 ```
 
-
-*(Be sure to include the space between `+100%FREE` and `/dev/...`.)*
-
-> **Check:** all commands succeed without errors (unedited output is saved in `evidence/04-guest-uname.txt`).
+> **Check:** all commands succeed without errors; the exact unedited output is saved in `evidence/04-guest-uname.txt`.
 
 ---
 
 ## Part B. The Windows 11 VM
 
 ### Step 11. Create the Windows VM in the wizard
-
 1. Click **Создать** (New).
 2. **Имя ВМ** (Name): `lab02-windows`.
 3. **Образ ISO** (ISO Image): **Другой…** (Other…) and select the Windows 11 Evaluation ISO.
@@ -190,30 +189,26 @@ sudo lvextend -r -l +100%FREE /dev/ubuntu-vg/ubuntu-lv
 5. Confirm **ОС** = `Microsoft Windows`, **Версия ОС** = `Windows 11 (64-bit)`.
 6. Leave **Осуществить установку автоматически** (Proceed with Unattended Installation) **unticked**.
 
+![New VM wizard, Windows](evidence/07a-windows-wizard.png)
+
 Why unticked: avoids auto-creating hidden accounts and ensures you can configure a local user cleanly.
 
 > **Check:** Name is `lab02-windows`, Version is `Windows 11 (64-bit)`, unattended box is unticked. Do not click Finish yet.
 
 ### Step 12. Configure memory, processors, and disk
-
 1. Expand **Укажите виртуальное оборудование** (Specify virtual hardware):
-* **Основная память** (Base Memory): `4096 MB`.
-* **Число ЦПУ** (Processors): `2`.
-* **Использовать EFI** (Enable EFI): **ticked**.
-
-
+   * **Основная память** (Base Memory): `4096 MB`.
+   * **Число ЦПУ** (Processors): `2`.
+   * **Использовать EFI** (Enable EFI): **ticked**.
 2. Expand **Укажите виртуальный жёсткий диск** (Specify virtual hard disk):
-* Set size to `64 GB` and leave **Выделить место в полном размере** (Pre-allocate Full Size) **unticked**.
-* Click **Готово** (Finish).
-
-
+   * Set size to `64 GB` and leave **Выделить место в полном размере** (Pre-allocate Full Size) **unticked**.
+3. Click **Готово** (Finish).
 
 Why: 4 GB RAM, 2 CPUs, and 64 GB storage are Microsoft's official minimum requirements for Windows 11. Dynamic storage keeps initial SSD usage around 22 GB.
 
 > **Check:** `lab02-windows` appears in the left sidebar.
 
 ### Step 13. Enable EFI, Secure Boot, and TPM 2.0 (critical)
-
 Windows 11 refuses to install without UEFI, Secure Boot, and a TPM 2.0 chip. Configure this **before** starting the VM:
 
 1. Select `lab02-windows` → **Настроить** (Settings) → **Система** (System) → **Материнская плата** (Motherboard).
@@ -221,20 +216,22 @@ Windows 11 refuses to install without UEFI, Secure Boot, and a TPM 2.0 chip. Con
 3. **Безопасная загрузка** (Enable Secure Boot): **ticked**.
 4. **Версия TPM** (TPM): select `2.0`. Click **OK**.
 
+![Windows system settings](evidence/07-windows-vm-settings.png)
+
 Why: omitting any of these three causes Windows Setup to abort with *"This PC can't run Windows 11"*.
 
-> **Check:** UEFI, Безопасная загрузка, and Версия TPM `2.0` match the screenshot above.
+> **Check:** `4096 МБ` RAM, UEFI, Безопасная загрузка, and Версия TPM `2.0` match the screenshot above.
 
 ### Step 14. Attach Windows to `NatNetwork`
-
 Select `lab02-windows` → **Настроить** (Settings) → **Сеть** (Network) → **Адаптер 1** (Adapter 1): set **Тип подключения** (Attached to) = `Сеть NAT` (NAT Network) and **Имя** (Name) = `NatNetwork`. Click **OK**.
+
+![Windows network adapter](evidence/07b-windows-network.png)
 
 Why: places Windows on the exact same virtual subnet (`10.0.2.0/24`) as `lab01-ubuntu`.
 
 > **Check:** Adapter 1 shows `Сеть NAT` and `NatNetwork`.
 
 ### Step 15. Install Windows 11
-
 1. Click **Запустить** (Start). As soon as **Press any key to boot from CD or DVD** appears, click inside the VM window and press **Enter** or **Space** immediately.
 2. Confirm Language/Keyboard → **Next** → **Install now**.
 3. If prompted for a product key, click **I don't have a product key** (or select **Windows 11 Enterprise Evaluation** if asked for an edition). Accept the licence terms → **Next**.
@@ -243,24 +240,26 @@ Why: places Windows on the exact same virtual subnet (`10.0.2.0/24`) as `lab01-u
 6. Complete the out-of-box setup (region, keyboard, device name `lab02-windows`).
 7. When prompted to sign in with a Microsoft account, press **Shift + F10**, type `start ms-cxh:localonly` (or use *Sign-in options → Domain join instead*), and create a local username and password. Decline optional telemetry/privacy toggles.
 
-> **Check:** you reach the Windows 11 desktop with the Start menu visible and the Evaluation edition label in the bottom-right corner.
+![Finished Windows desktop](evidence/07c-windows-installer.png)
+
+Why a local account: the machine is a test box, and a Microsoft account would tie it to a personal login.
+
+> **Check:** you reach the Windows 11 desktop with the Start menu visible and the Windows 11 Enterprise LTSC Evaluation label in the bottom-right corner.
 
 ---
 
 ## Part C. Connect both guests and verify networking
 
 ### Step 16. Check IP address and internet on Windows
-
 Open **Start**, type `PowerShell`, and press **Enter**. Run:
 
 ```powershell
 ipconfig
 ping 1.1.1.1
 ping google.com
-
 ```
 
-* Under Ethernet adapter, note the **IPv4 Address** (`10.0.2.x`; in this build: `10.0.2.3`). **Write it down.**
+* Under Ethernet adapter, note the **IPv4 Address** (`10.0.2.x`; in this build: `10.0.2.3`, recorded in `evidence/05-ping-between-guests.txt`). **Write it down.**
 * Both pings must show `Lost = 0 (0% loss)`.
 
 Why two pings: `1.1.1.1` tests raw IP routing, while `google.com` verifies that DNS name resolution also works for the developer.
@@ -268,12 +267,10 @@ Why two pings: `1.1.1.1` tests raw IP routing, while `google.com` verifies that 
 > **Check:** `0% loss` on both commands.
 
 ### Step 17. Allow incoming ping on Windows Firewall
-
 Windows blocks incoming ping (ICMPv4) by default, which causes Linux-to-Windows pings to time out. Open **PowerShell as Administrator** (right-click Start → *Terminal (Admin)* or search PowerShell → *Run as administrator*) and run:
 
 ```powershell
 New-NetFirewallRule -DisplayName "Allow Ping ICMPv4" -Protocol ICMPv4 -IcmpType 8 -Direction Inbound -Action Allow
-
 ```
 
 Why this rule instead of turning off the firewall: it opens only ICMP ping requests while keeping all other firewall protections active.
@@ -281,46 +278,44 @@ Why this rule instead of turning off the firewall: it opens only ICMP ping reque
 > **Check:** PowerShell outputs the new rule details with no red error text.
 
 ### Step 18. Verify bidirectional ping and internet from both guests
-
 1. **On Ubuntu** (replace `<Windows-IP>` with `10.0.2.3` or your Windows IP from Step 16):
+
 ```bash
 ping -c 4 <Windows-IP>
 ping -c 4 1.1.1.1
-
 ```
-
 
 2. **On Windows** (replace `<Ubuntu-IP>` with `10.0.2.15` or your Ubuntu IP from Step 10):
+
 ```powershell
 ping <Ubuntu-IP>
-
 ```
 
+Why both directions: a one-way ping can succeed while the other direction is blocked by a firewall (this is exactly what Step 17 fixes).
 
-
-> **Check:** every ping returns replies with `0% packet loss` (unedited logs from both machines are saved in `evidence/05-ping-between-guests.txt`).
+> **Check:** every ping returns replies with `0% packet loss`; the unedited logs from both machines are saved in `evidence/05-ping-between-guests.txt`.
 
 ---
 
 ## Part D. Save a clean snapshot and test rollback
 
 ### Step 19. Take the `clean-install` snapshot on both VMs
-
 1. Shut down both VMs cleanly:
-* Ubuntu: run `sudo poweroff`
-* Windows: **Start → Power → Shut down**
-
-
+   * Ubuntu: run `sudo poweroff`
+   * Windows: **Start → Power → Shut down**
 2. In VirtualBox, select `lab01-ubuntu`, click the menu icon next to its name → **Снимки** (Snapshots).
 3. Click **Сделать** (Take), name it `clean-install`, and click **OK**.
-4. Repeat Steps 2–3 for `lab02-windows`.
+4. Repeat items 2–3 of this step for `lab02-windows`.
+
+![Snapshot, Ubuntu](evidence/06-snapshot-list.png)
+
+![Snapshot, Windows](evidence/06b-snapshot-list-windows.png)
 
 Why shut down first: snapshots taken while powered off are smaller, faster, and avoid capturing half-written disk buffers.
 
 > **Check:** both VMs list `clean-install` under Snapshots.
 
 ### Step 20. Test and use Rollback (how to undo damage)
-
 Whenever the developer breaks a VM or wants a fresh start, restore the snapshot:
 
 1. To test rollback safely, boot `lab01-ubuntu`, create a dummy test file (`touch ~/broken-test.txt`), and shut the VM down (`sudo poweroff`).
@@ -329,6 +324,8 @@ Whenever the developer breaks a VM or wants a fresh start, restore the snapshot:
 4. Untick *"Создать снимок текущего состояния машины"* (Create a snapshot of the current machine state) so you do not save the broken state, then click **Восстановить** (Restore).
 5. Start the VM.
 
+Why untick: otherwise VirtualBox saves the broken state as a new snapshot and clutters the list.
+
 > **Check:** the VM boots back into its clean state in seconds, and `~/broken-test.txt` (or any damage made after the snapshot) is completely gone. **Note:** remind the developer to store any work they want to keep outside the VM before rolling back.
 
 ---
@@ -336,7 +333,7 @@ Whenever the developer breaks a VM or wants a fresh start, restore the snapshot:
 ## Troubleshooting
 
 | # | Symptom | Cause | Fix |
-| --- | --- | --- | --- |
+|---|---|---|---|
 | 1 | VM fails to start with `VERR_VMX_NO_VMX` or `VT-x / AMD-V` error | Hardware virtualisation is disabled in BIOS/UEFI | Reboot the laptop, open BIOS (F2/F10/Del), enable *Intel VT-x* or *AMD SVM Mode*, save and exit. |
 | 2 | Windows Setup says *"This PC can't run Windows 11"* | EFI, Secure Boot, TPM 2.0, 4 GB RAM, or 64 GB disk is missing | Power off the VM and repeat Steps 12 and 13. |
 | 3 | Windows boots to a small black 640×480 screen and freezes | Virtual graphics controller mismatch | Power off the VM → **Настроить** (Settings) → **Дисплей** (Display) → set **Графический контроллер** (Graphics Controller) to `VMSVGA` → start again. |
@@ -345,4 +342,3 @@ Whenever the developer breaks a VM or wants a fresh start, restore the snapshot:
 | 6 | Ubuntu pings Windows with 100% packet loss, even on `NatNetwork` | Windows Firewall is blocking incoming ICMPv4 Echo | Run the `New-NetFirewallRule` command in PowerShell as Administrator (Step 17). |
 | 7 | Ubuntu installer restarts from the beginning after *Reboot Now* | Virtual ISO image is still mounted in the optical drive | Power off the VM → **Настроить** (Settings) → **Носители** (Storage) → remove the `.iso` from the optical drive → start again. |
 | 8 | Windows Setup skips *"Press any key to boot from CD or DVD"* | Key was not pressed within the 3-second prompt | Click **Машина** (Machine) → **Перезагрузить** (Reset), immediately click inside the window, and press **Space**. |
-
