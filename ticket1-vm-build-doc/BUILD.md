@@ -126,7 +126,7 @@ To verify: select `lab01-ubuntu` → **Настроить** (Settings) → **Н�
 ### Step 8. Attach Ubuntu to `NatNetwork`
 1. Select `lab01-ubuntu` → **Настроить** (Settings) → **Сеть** (Network) → **Адаптер 1** (Adapter 1).
 2. **Тип подключения** (Attached to): `Сеть NAT` (NAT Network).
-3. **Имя** (Name): `NatNetwork`. Leave everything else as it is. Click **OK**.
+3. **Имя** (Name): `NatNetwork`. Click **OK**.
 
 ![Ubuntu network adapter](evidence/03-network-adapter.png)
 
@@ -271,7 +271,7 @@ Why this ping: `1.1.1.1` is an internet address given as numbers, so a reply pro
 > **Check:** `0% loss`.
 
 ### Step 17. Allow incoming ping on Windows Firewall
-Windows blocks incoming ping (ICMPv4) by default, which causes Linux-to-Windows pings to time out (this happened during this build, see `evidence/05b-firewall-problem.txt`). Open **PowerShell as Administrator** (right-click Start → *Terminal (Admin)* or search PowerShell → *Run as administrator*) and run:
+Windows blocks incoming ping (ICMPv4) by default, which causes Linux-to-Windows pings to time out. Open **PowerShell as Administrator** (right-click Start → *Terminal (Admin)* or search PowerShell → *Run as administrator*) and run:
 
 ```powershell
 New-NetFirewallRule -DisplayName "Allow Ping ICMPv4" -Protocol ICMPv4 -IcmpType 8 -Direction Inbound -Action Allow
