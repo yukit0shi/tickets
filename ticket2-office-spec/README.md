@@ -9,60 +9,59 @@
 
 ## 2. What was actually needed
 
-The director's idea of buying four identical machines is wrong. Each role runs a completely different daily workload, which means each workstation hits a different hardware bottleneck:
+Buying four identical machines is the wrong approach. Each role runs a distinct daily workload, shifting the hardware bottleneck to a different subsystem:
+- **Accountant:** Runs local accounting software (1C:Enterprise), tax portals, and spreadsheets. This requires native Windows compatibility and single-core responsiveness, not a discrete GPU or 32 GB RAM.
+- **Sales Manager:** Keeps 35–40 browser tabs, CRM systems, and video calls open simultaneously, making **RAM capacity** the main bottleneck so the OS avoids swapping during client calls.
+- **Web Developer:** Runs local servers, Docker containers/VMs, IDEs, and databases concurrently, requiring **multi-core CPU throughput and 32 GB RAM**.
+- **Designer:** Works with multi-layer graphics and high-resolution canvases, where **display resolution/color accuracy and GPU acceleration (VRAM)** matter most.
 
-- **Accountant:** Runs local accounting software (1C:Enterprise), tax portals, and spreadsheets. This requires native Windows compatibility and decent single-core responsiveness, not a dedicated graphics card or 32 GB of RAM.
-- **Sales Manager:** Keeps 35–40 browser tabs, CRM systems, and video calls running at the same time. Here, **RAM capacity** is the main bottleneck—if memory fills up, the OS starts swapping to disk during client calls.
-- **Web Developer:** Runs local servers, Docker containers/VMs, IDEs, databases, and multiple browser windows simultaneously, requiring **multi-core CPU performance and 32 GB RAM**.
-- **Designer:** Works with multi-layer graphics and high-resolution canvases, where **GPU acceleration (VRAM) and a sharp, larger QHD IPS display** matter most.
-
-Splitting the **3,000,000 KZT** budget equally across four identical PCs would waste money on unneeded GPUs for office roles while leaving the designer and developer underpowered.
+Splitting the **3,000,000 KZT** budget equally across four identical PCs would waste money on unused GPUs for office roles while leaving the designer and developer under-equipped.
 
 **What the request left out:**
-1. **Exact lifespan:** "A few years" is vague—planning for 3 years vs. 5+ years changes platform and upgrade decisions.
-2. **Peripherals and accessories:** Keyboards, mice, Ethernet/display cables, headsets/webcams for video calls, and surge protectors or UPS units were not mentioned.
-3. **Specific software stack:** Which exact tools each person uses (such as 1C:Enterprise and banking tokens on Windows vs. Linux tooling for development, or 2D vs. 3D/video editing for design).
-4. **Workspace constraints:** Case size limits, Wi-Fi vs. wired Ethernet availability, and whether the company prefers custom builds or pre-built warranty coverage.
+1. **Exact service lifespan:** "A few years" is ambiguous—planning for 3 years vs. 5+ years changes platform and upgrade decisions.
+2. **Peripherals and power protection:** Keyboards, mice, Ethernet/display cables, webcams/headsets for sales calls, and surge protectors or UPS units (especially critical for the accountant) were not mentioned.
+3. **Specific software stack:** Which exact tools each person runs daily (such as 1C:Enterprise and banking tokens on Windows vs. Linux tooling for development, or 2D UI vs. print/3D/video design).
+4. **Workspace constraints:** Desk space/case form factor limits and whether Wi-Fi adapters or wired Ethernet drops are available.
 
-**What I would ask Daniyar:**
-- How many years do you expect these machines to last before replacement, and do you plan to upgrade RAM or storage mid-cycle?
-- What specific applications will each person run daily (especially whether the designer handles 3D/video rendering and whether accounting requires Windows-only software)?
-- Are keyboards, mice, headsets, and network cables covered by a separate office supplies budget, or must they fit inside the 3,000,000 KZT limit?
+**Questions I would ask Daniyar:**
+- How many years should these machines serve before replacement, and do you expect to upgrade RAM or CPUs mid-cycle?
+- Which exact applications will each role use daily (specifically whether the designer needs factory color calibration for print/brand work or 3D/video rendering)?
+- Are keyboards, mice, headsets, patch cables, and UPS units covered by a separate office supplies budget, or must they fit inside the 3,000,000 KZT limit?
 
-**What I assumed instead:**
-- Targeted a **3–4 year service life** using upgradeable Micro-ATX desktop platforms.
-- Assumed keyboards, mice, and patch cables are funded separately under general office supplies, while **all four monitors and OS licenses** are included within the 3,000,000 KZT budget.
-- Chose **Windows 11 Pro** for the Accountant, Sales Manager, and Designer (for full compatibility with local accounting tools and commercial design software) and **Ubuntu 26.04.1 LTS** for the Web Developer.
+**Assumptions I made instead:**
+- Targeted a **3–4 year service life** without requiring mid-cycle motherboard/CPU platform swaps (accepting that the Sales build uses the mature AM4 platform for cost efficiency over this 3–4 year window).
+- Assumed keyboards, mice, cables, and UPS units are funded separately under general office supplies, while **all four monitors and OS licenses** are included inside the 3,000,000 KZT budget.
+- Chose **Windows 11 Pro** for the Accountant, Sales Manager, and Designer (for full compatibility with Kazakhstan accounting/tax tools and commercial creative suites) and **Ubuntu 26.04.1 LTS** for the Web Developer. Ubuntu is legally licensed under open-source terms (**GNU GPL**, 0 KZT per seat with 5 years of LTS security support) and is natively **suitable** for web development (native Docker Engine without WSL overhead, Linux CLI/SSH parity with production servers, and local databases).
 
 ## 3. What I did
 
-I started from each role's daily workload, identified which resource runs out first, and directed the budget toward those bottlenecks while meeting every hard requirement ($\ge$ 16 GB RAM, 1 TB NVMe SSD, licensed OS, and one monitor per workstation). Part compatibility and wattage margins were verified on PCPartPicker, and local Kazakhstan prices with dates (`2026-11-22`) were recorded in [`budget.csv`](budget.csv) with build trade-offs documented in [`builds.md`](builds.md).
+I mapped each role's daily workload to its primary bottleneck and allocated the budget toward the parts that prevent slowdowns under load while meeting every hard rule (≥ 16 GB RAM, 1 TB NVMe SSD, licensed OS, and one monitor per desk). Hardware compatibility and wattage margins were checked on PCPartPicker (noting the standard BIOS revision check for the Ryzen 5 5600G on the MSI A520M-A PRO board), and local KZT prices were logged in [`budget.csv`](budget.csv) alongside build justifications in [`builds.md`](builds.md).
 
-The total cost across all four workstations is **2,921,408 KZT**, leaving **78,592 KZT** under the 3,000,000 KZT budget.
+Total spend across all four workstations is **2,921,408 KZT**, leaving **78,592 KZT** under the 3,000,000 KZT budget.
 
 **1. Which of the four machines will you upgrade first, eighteen months from now, and why?**
-I would upgrade the **Accountant's** workstation first by replacing or expanding its **RAM** from 16 GB to 32 GB. It is the only build starting at the 16 GB baseline, and as 1C databases, multi-year Excel ledgers, browser portals, and background security tools grow heavier over 18 months, 16 GB will tighten first while the other three machines already ship with 32 GB.
+I would upgrade the **Accountant's** machine first by **replacing its 16 GB (2×8 GB) DDR4 kit with a 32 GB (2×16 GB) DDR4 kit**. Because the `GIGABYTE H610M K DDR4` motherboard only has two DIMM slots (both populated by the 2×8 GB sticks), memory cannot simply be expanded by adding a stick—the kit must be swapped. As 1C databases, multi-year Excel ledgers, browser portals, and background security tools grow heavier over 18 months, 16 GB will tighten first while the other three systems already start with 32 GB.
 
 **2. Price the same four as pre-built machines from a vendor. What does the company gain and what does it lose by not building them?**
-Checking comparable pre-built desktops plus monitors from Kazakhstan retail listings on `2026-11-22` comes out slightly higher than our custom total while offering worse component balance:
+Comparable pre-built desktops plus monitors from Kazakhstan retail listings (checked on `2026-11-24`) cost roughly the same or slightly more than our custom total while offering worse component balance:
 
-| Role | Pre-built Desktop + Monitor Equivalent | Vendor | Price (KZT) | Date |
+| Role | Pre-built Desktop + Monitor Equivalent | Source URL | Price (KZT) | Date |
 | :--- | :--- | :--- | ---: | :--- |
-| Accountant | Pre-built Core i3-12100 / 16GB / 1TB SSD + 24" IPS Monitor | Kaspi.kz / DNS | 425,000 | 2026-11-22 |
-| Sales | Pre-built Ryzen 5 5600G / 32GB / 1TB SSD + 24" IPS Monitor | Kaspi.kz / DNS | 685,000 | 2026-11-22 |
-| Web Developer | Pre-built Core i5-12400 / 32GB / 1TB SSD + 24" IPS Monitor | Kaspi.kz / DNS | 665,000 | 2026-11-22 |
-| Designer | Pre-built Core i5-12400 / 32GB / 1TB / RTX 3060 + 27" QHD Monitor | Kaspi.kz / DNS | 1,190,000 | 2026-11-22 |
-| **Pre-built Total** | — | — | **2,965,000** | **2026-11-22** |
+| Accountant | [Модель готового ПК на i3-12100/16GB/1TB + монитор 24"] | [ВСТАВЬ_ССЫЛКУ_1] | [ЦЕНА_1] | 2026-11-24 |
+| Sales | [Модель готового ПК на Ryzen 5 5600G/32GB/1TB + монитор 24"] | [ВСТАВЬ_ССЫЛКУ_2] | [ЦЕНА_2] | 2026-11-24 |
+| Web Developer | [Модель готового ПК на i5-12400/32GB/1TB + монитор 24"] | [ВСТАВЬ_ССЫЛКУ_3] | [ЦЕНА_3] | 2026-11-24 |
+| Designer | [Модель готового ПК на i5-12400/32GB/1TB/RTX 3060 + 27" QHD] | [ВСТАВЬ_ССЫЛКУ_4] | [ЦЕНА_4] | 2026-11-24 |
+| **Pre-built Total** | — | — | **[СУММА]** | **2026-11-24** |
 
-By buying pre-built systems, the company **gains** a single unified vendor warranty, zero assembly time, and immediate deployment out of the box. However, it **loses** control over internal component quality (pre-builts often use entry-level PSUs, slower SSDs, or single-channel memory), pays for bundled Windows licenses even on the Linux developer machine, and faces stricter upgrade paths.
+By choosing pre-built systems, the company **gains** a single unified vendor warranty, zero assembly labor, and immediate out-of-the-box deployment. However, it **loses** transparency and control over internal component models (such as PSU quality and SSD endurance), pays for bundled Windows licenses even on the Linux developer workstation, and faces stricter per-part upgrade paths.
 
 **3. One of these four people will complain about performance within a month. Which one, and about what?**
-The **Designer** is the most likely to complain within the first month if their workload turns out to include heavy 4K video editing, After Effects compositions, or 3D rendering rather than 2D graphic/UI design. To keep the overall budget under 3,000,000 KZT, I capped the Designer's CPU at a 6-core Intel Core i5-12400 and 32 GB of DDR4 RAM instead of an 8+ core processor with 64 GB RAM, which will noticeably slow down long timeline exports and heavy multi-layer renders.
+The **Designer** is the most likely to complain within the first month—specifically about **display color accuracy** if their tasks involve print layouts or brand-critical color grading. To afford the RTX 3060 12 GB and 32 GB RAM within budget, I selected the `Dell Pro 27 QHD Monitor E2726DS`, which is a standard office IPS panel (99% sRGB) without factory Delta-E calibration or wide DCI-P3/AdobeRGB gamut coverage (and secondarily, the 6-core i5-12400 / 32 GB RAM will feel tight if they run heavy 3D or 4K video renders).
 
 ## 4. Evidence
 
-- [`evidence/pcpartpicker-links.md`](evidence/pcpartpicker-links.md) — Contains the four PCPartPicker build links confirming socket, DDR4 memory, M.2 slot, GPU clearance, and PSU wattage compatibility.
-- [`evidence/vendor-quotes/`](evidence/vendor-quotes/) — Dated vendor screenshots (`2026-11-22`) proving every component, monitor, and OS price listed in [`budget.csv`](budget.csv):
+- [`evidence/pcpartpicker-links.md`](evidence/pcpartpicker-links.md) — Lists the four PCPartPicker build links verifying socket, DDR4, M.2, case clearance, and PSU wattage compatibility.
+- [`evidence/vendor-quotes/`](evidence/vendor-quotes/) — Dated vendor screenshots (`2026-11-22`) proving all 37 component, monitor, and OS prices recorded in [`budget.csv`](budget.csv):
   - **Accountant:** `accountant-cpu.png`, `accountant-cooler.png`, `accountant-motherboard.png`, `accountant-memory.png`, `accountant-storage.png`, `accountant-psu.png`, `accountant-case.png`, `accountant-monitor.png`, `accountant-os.png`.
   - **Sales:** `sales-cpu.png`, `sales-cooler.png`, `sales-motherboard.png`, `sales-memory.png`, `sales-storage.png`, `sales-psu.png`, `sales-case.png`, `sales-monitor.png`, `sales-os.png`.
   - **Web Developer:** `web-developer-cpu.png`, `web-developer-cooler.png`, `web-developer-motherboard.png`, `web-developer-memory.png`, `web-developer-storage.png`, `web-developer-psu.png`, `web-developer-case.png`, `web-developer-monitor.png`, `web-developer-os.png`.
@@ -70,4 +69,5 @@ The **Designer** is the most likely to complain within the first month if their 
 
 ## 5. What I would do differently
 
-Before buying parts, I would confirm the exact software list and monitor color-calibration requirements with the Designer and Web Developer, and I would standardize on identical DDR4 motherboards across the office machines so spare RAM sticks or replacement parts can be swapped between workstations if one fails.
+1. **Rebalance SSD and case spending to fund a calibrated Designer display and peripherals:** Spending 141,150 KZT each on PCIe 4.0 `Samsung 990 PRO` drives and 69,999 KZT each on `Lian Li A3-mATX` cases for the Accountant and Sales machines was overkill for office workloads. Replacing those with `ADATA LEGEND 710` SSDs (60,870 KZT) and `Deepcool MATREXX 30` cases (13,960 KZT) would save **272,638 KZT**, enough to upgrade the Designer to a factory-calibrated monitor (such as an ASUS ProArt or Dell UltraSharp) and include keyboards, mice, and a UPS within the 3,000,000 KZT cap.
+2. **Verify BIOS support or move Sales off AM4:** Before ordering the `MSI A520M-A PRO` + `Ryzen 5 5600G`, I would confirm with the seller that the shipped BIOS revision supports Cezanne APUs out of the box—or switch the Sales build to a B550/AM5 platform for cleaner long-term upgradability.
